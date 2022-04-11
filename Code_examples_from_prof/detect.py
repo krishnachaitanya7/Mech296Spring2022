@@ -1,7 +1,13 @@
+import sys
+sys.path.append("/usr/lib/python3.6/dist-packages")
+sys.path.append("/home/robotvision/PycharmProjects/Mech296Spring2022")
 import jetson.inference
 import jetson.utils
 import cv2
 from gsp import gstreamer_pipeline as gsp
+import pdb
+
+
 	
 net = jetson.inference.detectNet('ssd-mobilenet-v2', threshold = 0.5)
 
@@ -13,6 +19,7 @@ def main():
 	if cap.isOpened():
 		try:
 			window_handle = cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
+			pdb.set_trace()
 			while True:
 				ret, img = cap.read()
 				imgCuda = jetson.utils.cudaFromNumpy(img)
@@ -24,6 +31,7 @@ def main():
 					className = net.GetClassDesc(d.ClassID)
 					cv2.rectangle(img, (xt, yt), (xb, yb), (255, 0, 0), 2)
 					cv2.putText(img, className, (xt+5, yt+1), cv2.FONT_HERSHEY_DUPLEX, 0.75, (255, 255, 0), 2)
+				
 				
 				cv2.imshow(window_title, img)
 				keyCode = cv2.waitKey(10) & 0xFF
