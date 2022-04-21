@@ -9,10 +9,10 @@ import RPi.GPIO as GPIO
 import time
 
 
-IN1 = 35  
-IN2 = 36  
-IN3 = 37
-IN4 = 38
+LF = 35  
+LB = 36  
+RF = 37
+RB = 38
 left_wheel = 32
 right_wheel = 33
 
@@ -23,10 +23,10 @@ def main():
     # set pin as an output pin with optional initial state of HIGH
     GPIO.setup(left_wheel, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(right_wheel, GPIO.OUT, initial=GPIO.LOW)
-    GPIO.setup(IN1, GPIO.OUT, initial=GPIO.HIGH)
-    GPIO.setup(IN2, GPIO.OUT, initial=GPIO.LOW)
-    GPIO.setup(IN1, GPIO.OUT, initial=GPIO.HIGH)
-    GPIO.setup(IN2, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(LB, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(LF, GPIO.OUT, initial=GPIO.HIGH)
+    GPIO.setup(RB, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(RF, GPIO.OUT, initial=GPIO.HIGH)
     left_wheel_pwm = GPIO.PWM(left_wheel, 100)
     right_wheel_pwm = GPIO.PWM(right_wheel, 100)
     val = 10
@@ -37,7 +37,7 @@ def main():
     print("PWM running. Press CTRL+C to exit.")
     try:
         while True:
-            time.sleep(5.0)
+            time.sleep(1.0)
             if val >= 100:
                 incr = -incr
             if val <= 0:
