@@ -28,7 +28,7 @@ net = jetson.inference.detectNet(opt.network, sys.argv, opt.threshold)
 
 # create video sources & outputs
 input = jetson.utils.videoSource("csi://0")
-output = jetson.utils.videoOutput("display://1")
+output = jetson.utils.videoOutput("localhost:10.0")
 
 # process frames until the user exits
 while True:
