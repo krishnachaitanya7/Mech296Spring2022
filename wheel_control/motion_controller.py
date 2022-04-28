@@ -12,12 +12,12 @@ class MotionController:
     def __init__(self):
         # Pin Setup:
         GPIO.setmode(GPIO.BOARD)
-        self.LF = 35
-        self.LB = 36
-        self.RF = 37
-        self.RB = 38
-        self.left_wheel = 32
-        self.right_wheel = 33
+        self.RF = 35
+        self.RB = 36
+        self.LF = 37
+        self.LB = 38
+        self.left_wheel = 33
+        self.right_wheel = 32
         self.LB_state = GPIO.LOW
         self.LF_state = GPIO.HIGH
         self.RB_state = GPIO.LOW
@@ -32,13 +32,13 @@ class MotionController:
         self.right_wheel_pwm = GPIO.PWM(self.right_wheel, 100)
         self.duty_cycle = 10
 
-    @property
-    def duty_cycle(self):
-        return self._duty_cycle
+    # @property
+    # def duty_cycle(self):
+    #     return self._duty_cycle
 
-    @duty_cycle.setter
-    def duty_cycle(self, value):
-        self.duty_cycle = value
+    # @duty_cycle.setter
+    # def duty_cycle(self, value):
+    #     self._duty_cycle = value
 
     def set_wheel_alignment(self, LF_state, LB_state, RF_state, RB_state):
         self.LF_state = LF_state
@@ -54,7 +54,7 @@ class MotionController:
         if duty_cycle is not None:
             self.duty_cycle = duty_cycle
         self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-        self.left_wheel_pwm.start(self.duty_cycle)
+        self.left_wheel_pwm.start(self.duty_cycle-12)
         self.right_wheel_pwm.start(self.duty_cycle)
 
     def go_backward(self, duty_cycle=None):
@@ -63,6 +63,21 @@ class MotionController:
         self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.LOW, GPIO.HIGH)
         self.left_wheel_pwm.start(self.duty_cycle)
         self.right_wheel_pwm.start(self.duty_cycle)
+    
+    def go_left(self, duty_cycle=None):
+        if duty_cycle is not None:
+            self.duty_cycle = duty_cycle
+        self.set_wheel_alignment(GPIO.LOW, GPIO.LOW, GPIO.HIGH, GPIO.HIGH)
+        self.left_wheel_pwm.start(self.duty_cycle)
+        self.right_wheel_pwm.start(self.duty_cycle)
+
+    def go_slight_left(self, duty_cycle=None):
+        if duty_cycle is not None:
+            self.duty_cycle = duty_cycle
+        self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
+        self.left_wheel_pwm.start(self.duty_cycle-10)
+        self.right_wheel_pwm.start(self.duty_cycle)
+        
 
     def stop(self):
         self.left_wheel_pwm.stop()
