@@ -1,8 +1,10 @@
 from wheel_control import MotionController
 import time
+import cv2
+
+mc = MotionController()
 
 if __name__ == "__main__":
-    mc = MotionController()
     start_time = time.time()
     while time.time() - start_time < 10:
         print(f"Going forwards")

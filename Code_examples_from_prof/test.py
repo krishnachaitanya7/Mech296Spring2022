@@ -1,6 +1,6 @@
 import sys
-sys.path.append("/usr/lib/python3.6/dist-packages")
-sys.path.append("/home/robotvision/PycharmProjects/Mech296Spring2022")
+# sys.path.append("/usr/lib/python3.6/dist-packages")
+# sys.path.append("/home/robotvision/PycharmProjects/Mech296Spring2022")
 import jetson.inference
 import jetson.utils
 
