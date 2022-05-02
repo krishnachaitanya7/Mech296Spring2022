@@ -6,12 +6,8 @@ import os
 import glob
 
 
-net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
-
-
 def main():
     window_title = "CSI Camera"
-    image_index = 0
     # find the number of images in camera_calibrartion_images
     image_path = os.path.join(os.path.dirname(__file__), "camera_calibrartion_images")
     image_count = len(glob.glob1(image_path, "*.jpg"))
@@ -31,8 +27,9 @@ def main():
                     break
                 elif keyCode == ord("c"):
                     # save the image
+                    print("Saving image {}".format(image_count))
                     image_count += 1
-                    cv2.imwrite(os.path.join(image_path, f"{image_index}.jpg"), img)
+                    cv2.imwrite(os.path.join(image_path, f"{image_count}.jpg"), img)
 
         finally:
             cap.release()
