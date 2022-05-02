@@ -64,24 +64,23 @@ class MotionController:
             self._left_duty_cycle = duty_cycle
             self._right_duty_cycle = duty_cycle
         self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-        self.left_wheel_pwm.start(self._duty_cycle)
-        self.right_wheel_pwm.start(self._duty_cycle)
+        self.left_wheel_pwm.start(self._left_duty_cycle)
+        self.right_wheel_pwm.start(self._right_duty_cycle)
 
     def go_backward(self, duty_cycle=None):
         if duty_cycle is not None:
             self._left_duty_cycle = duty_cycle
             self._right_duty_cycle = duty_cycle
         self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.LOW, GPIO.HIGH)
-        self.left_wheel_pwm.start(self._duty_cycle)
-        self.right_wheel_pwm.start(self._duty_cycle)
-    
+        self.left_wheel_pwm.start(self._left_duty_cycle)
+        self.right_wheel_pwm.start(self._right_duty_cycle)
+
     def go_left(self, left_duty_cycle, right_duty_cycle):
         self._left_duty_cycle = left_duty_cycle
         self._right_duty_cycle = right_duty_cycle
         self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
         self.left_wheel_pwm.start(self._duty_cycle)
         self.right_wheel_pwm.start(self._duty_cycle)
-        
 
     def stop(self):
         self.left_wheel_pwm.stop()
