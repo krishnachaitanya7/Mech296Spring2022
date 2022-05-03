@@ -76,12 +76,38 @@ class MotionController:
         self.right_wheel_pwm.start(self._right_duty_cycle)
 
     def go_left(self, left_duty_cycle, right_duty_cycle):
-        self._left_duty_cycle = left_duty_cycle
-        self._right_duty_cycle = right_duty_cycle
-        self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-        print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
-        self.left_wheel_pwm.start(self._left_duty_cycle)
-        self.right_wheel_pwm.start(self._right_duty_cycle)
+        # self._left_duty_cycle = left_duty_cycle
+        # self._right_duty_cycle = right_duty_cycle
+        # self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
+        # print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
+        # self.left_wheel_pwm.start(self._left_duty_cycle)
+        # self.right_wheel_pwm.start(self._right_duty_cycle)
+        if left_duty_cycle < 0 or right_duty_cycle < 0:
+            print('negative values')
+            if left_duty_cycle < 0:
+                self._right_duty_cycle = right_duty_cycle
+                self._left_duty_cycle = abs(left_duty_cycle)
+                self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.HIGH, GPIO.LOW)
+                print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
+                print('turning left')
+                self.left_wheel_pwm.start(self._left_duty_cycle)
+                self.right_wheel_pwm.start(self._right_duty_cycle)
+            elif right_duty_cycle < 0:
+                self._left_duty_cycle = left_duty_cycle
+                self._right_duty_cycle = abs(right_duty_cycle)
+                self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH)
+                print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
+                print('turning right')
+                self.left_wheel_pwm.start(self._left_duty_cycle)
+                self.right_wheel_pwm.start(self._right_duty_cycle)
+        else:
+            print("positive values")
+            self._left_duty_cycle = left_duty_cycle
+            self._right_duty_cycle = right_duty_cycle
+            self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
+            print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
+            self.left_wheel_pwm.start(self._left_duty_cycle)
+            self.right_wheel_pwm.start(self._right_duty_cycle)
 
     def stop(self):
         self.left_wheel_pwm.stop()

@@ -9,7 +9,7 @@ import glob
 def main():
     window_title = "CSI Camera"
     # find the number of images in camera_calibrartion_images
-    image_path = os.path.join(os.path.dirname(__file__), "camera_calibrartion_images")
+    image_path = os.path.join(os.path.dirname(__file__), "camera_calibration_images")
     image_count = len(glob.glob1(image_path, "*.jpg"))
     image_count += 1
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
