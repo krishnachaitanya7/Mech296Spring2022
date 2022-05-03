@@ -30,7 +30,6 @@ def main():
                     print("Saving image {}".format(image_count))
                     image_count += 1
                     cv2.imwrite(os.path.join(image_path, f"{image_count}.jpg"), img)
-
         finally:
             cap.release()
             cv2.destroyAllWindows()
