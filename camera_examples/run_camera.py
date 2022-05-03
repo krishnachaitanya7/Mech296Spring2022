@@ -4,7 +4,7 @@ import jetson.utils
 from gsp import gstreamer_pipeline as gsp
 
 
-net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
+net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
 
 
 def main():
@@ -23,8 +23,9 @@ def main():
                     # print(d)
                     xt, yt, xb, yb = int(d.Left), int(d.Top), int(d.Right), int(d.Bottom)
                     className = net.GetClassDesc(d.ClassID)
-                    cv2.rectangle(img, (xt, yt), (xb, yb), (255, 0, 0), 2)
-                    cv2.putText(img, className, (xt + 5, yt + 1), cv2.FONT_HERSHEY_DUPLEX, 0.75, (255, 255, 0), 2)
+                    if className == "person":
+                        cv2.rectangle(img, (xt, yt), (xb, yb), (255, 0, 0), 2)
+                        cv2.putText(img, className, (xt + 5, yt + 1), cv2.FONT_HERSHEY_DUPLEX, 0.75, (255, 255, 0), 2)
 
                 cv2.imshow(window_title, img)
                 keyCode = cv2.waitKey(10) & 0xFF
