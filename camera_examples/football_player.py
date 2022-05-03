@@ -12,16 +12,18 @@ class FootBallPlayer:
     def __init__(self) -> None:
         self.goal_detected = False
         # Setup the GUI
-        sg.theme("SandyBeach")
-        # Very basic window.
-        # Return values using
-        # automatic-numbered keys
-        layout = [
-            [sg.Text("Please enter the parameters")],
-            [sg.Text("Canny Low", size=(15, 1)), sg.InputText()],
-            [sg.Text("Canny High", size=(15, 1)), sg.InputText()],
-        ]
-        self.window = sg.Window("Simple data entry window", layout)
+        # sg.theme("SandyBeach")
+        # # Very basic window.
+        # # Return values using
+        # # automatic-numbered keys
+        # layout = [
+        #     [sg.Text("Please enter the parameters")],
+        #     [sg.Text("Canny Low", size=(15, 1)), sg.InputText()],
+        #     [sg.Text("Canny High", size=(15, 1)), sg.InputText()],
+        #     [sg.Text("Min Line Length", size=(15, 1)), sg.InputText()],
+        #     [sg.Text("Max Line Gap", size=(15, 1)), sg.InputText()],
+        # ]
+        # self.window = sg.Window("Simple data entry window", layout)
         self.camera_loop1()
 
     def read_gui_input(self):
@@ -30,12 +32,20 @@ class FootBallPlayer:
         try:
             canny_low = int(values[0])
         except:
-            canny_low = 150
+            canny_low = 190
         try:
             canny_high = int(values[1])
         except:
             canny_high = 200
-        return canny_low, canny_high
+        try:
+            min_line_length = int(values[2])
+        except:
+            min_line_length = 100
+        try:
+            max_line_gap = int(values[3])
+        except:
+            max_line_gap = 4
+        return canny_low, canny_high, min_line_length, max_line_gap
 
     def camera_loop1(self):
         window_title = "CSI Camera"
@@ -57,14 +67,14 @@ class FootBallPlayer:
             print("Error: Unable to open CSI camera")
 
     def detect_checkerboard(self, img, draw_img=False):
-        canny_low, canny_high = self.read_gui_input()
+        canny_low, canny_high, min_line_length, max_line_gap = 190, 200, 100, 4  # self.read_gui_input()
         # convert to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # find the chessboard corners
         img_grayscale_gb = cv2.GaussianBlur(gray, (5, 5), 0)
         img_grayscale_gb_canny = cv2.Canny(img_grayscale_gb, canny_low, canny_high)
         # find hough lines in the image
-        lines = cv2.HoughLinesP(img_grayscale_gb_canny, 1, pi / 180, 50, None, 80, 5)
+        lines = cv2.HoughLinesP(img_grayscale_gb_canny, 1, pi / 180, 50, None, min_line_length, max_line_gap)
         # draw the lines on the image
         if draw_img and lines is not None:
             for line in lines:
