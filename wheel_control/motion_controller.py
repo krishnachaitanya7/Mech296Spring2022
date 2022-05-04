@@ -59,97 +59,25 @@ class MotionController:
         GPIO.output(self.RF, self.RF_state)
         GPIO.output(self.RB, self.RB_state)
 
-    def go_forward(self, duty_cycle=None):
-        if duty_cycle is not None:
-            self._left_duty_cycle = duty_cycle
-            self._right_duty_cycle = duty_cycle
-        self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-        self.left_wheel_pwm.start(self._left_duty_cycle)
-        self.right_wheel_pwm.start(self._right_duty_cycle)
-
-    def go_backward(self, duty_cycle=None):
-        if duty_cycle is not None:
-            self._left_duty_cycle = duty_cycle
-            self._right_duty_cycle = duty_cycle
-        self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.LOW, GPIO.HIGH)
-        self.left_wheel_pwm.start(self._left_duty_cycle)
-        self.right_wheel_pwm.start(self._right_duty_cycle)
-
-    def go_left(self, left_duty_cycle, right_duty_cycle):
-        # self._left_duty_cycle = left_duty_cycle
-        # self._right_duty_cycle = right_duty_cycle
-        # self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-        # print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
-        # self.left_wheel_pwm.start(self._left_duty_cycle)
-        # self.right_wheel_pwm.start(self._right_duty_cycle)
-        if left_duty_cycle < 0 or right_duty_cycle < 0:
-            print('negative values')
-            if left_duty_cycle < 0:
-                self._right_duty_cycle = right_duty_cycle
-                self._left_duty_cycle = abs(left_duty_cycle)
-                self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.HIGH, GPIO.LOW)
-                print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
-                print('turning left')
-                self.left_wheel_pwm.start(self._left_duty_cycle)
-                self.right_wheel_pwm.start(self._right_duty_cycle)
-            elif right_duty_cycle < 0:
-                self._left_duty_cycle = left_duty_cycle
-                self._right_duty_cycle = abs(right_duty_cycle)
-                self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH)
-                print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
-                print('turning right')
-                self.left_wheel_pwm.start(self._left_duty_cycle)
-                self.right_wheel_pwm.start(self._right_duty_cycle)
+    def go_left_and_right(self, left_duty_cycle, right_duty_cycle):
+        # Whenever a wheel needs to go back: GPIO.LOW, GPIO.HIGH
+        # Whenever a wheel needs to go forward: GPIO.HIGH, GPIO.LOW
+        if left_duty_cycle < 0 and right_duty_cycle < 0:
+            self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.LOW, GPIO.HIGH)
+        elif left_duty_cycle < 0 and right_duty_cycle > 0:
+            self.set_wheel_alignment(GPIO.LOW, GPIO.HIGH, GPIO.HIGH, GPIO.LOW)
+        elif left_duty_cycle > 0 and right_duty_cycle < 0:
+            self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH)
         else:
-            print("positive values")
-            self._left_duty_cycle = left_duty_cycle
-            self._right_duty_cycle = right_duty_cycle
+            # Both are greater than 0
             self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
-            print(f"Left duty cycle: {self._left_duty_cycle}, right duty cycle: {self._right_duty_cycle}")
-            self.left_wheel_pwm.start(self._left_duty_cycle)
-            self.right_wheel_pwm.start(self._right_duty_cycle)
+
+        self._left_duty_cycle = abs(left_duty_cycle)
+        self._right_duty_cycle = abs(right_duty_cycle)
+        self.left_wheel_pwm.start(self._left_duty_cycle)
+        self.right_wheel_pwm.start(self._right_duty_cycle)
 
     def stop(self):
         self.left_wheel_pwm.stop()
         self.right_wheel_pwm.stop()
         self.set_wheel_alignment(GPIO.LOW, GPIO.LOW, GPIO.LOW, GPIO.LOW)
-
-
-# def main():
-#     # Pin Setup:
-#     # Board pin-numbering scheme
-#     GPIO.setmode(GPIO.BOARD)
-#     # set pin as an output pin with optional initial state of HIGH
-#     GPIO.setup(left_wheel, GPIO.OUT, initial=GPIO.LOW)
-#     GPIO.setup(right_wheel, GPIO.OUT, initial=GPIO.LOW)
-#     GPIO.setup(LB, GPIO.OUT, initial=GPIO.LOW)
-#     GPIO.setup(LF, GPIO.OUT, initial=GPIO.HIGH)
-#     GPIO.setup(RB, GPIO.OUT, initial=GPIO.LOW)
-#     GPIO.setup(RF, GPIO.OUT, initial=GPIO.HIGH)
-#     left_wheel_pwm = GPIO.PWM(left_wheel, 100)
-#     right_wheel_pwm = GPIO.PWM(right_wheel, 100)
-#     val = 10
-#     incr = 10
-#     left_wheel_pwm.start(val)
-#     right_wheel_pwm.start(val)
-
-#     print("PWM running. Press CTRL+C to exit.")
-#     try:
-#         while True:
-#             time.sleep(1.0)
-#             if val >= 100:
-#                 incr = -incr
-#             if val <= 0:
-#                 incr = -incr
-#             val += incr
-#             left_wheel_pwm.ChangeDutyCycle(val)
-#             right_wheel_pwm.ChangeDutyCycle(val)
-#             print(f"Duty Cycle: {val}")
-#     finally:
-#         left_wheel_pwm.stop()
-#         right_wheel_pwm.stop()
-#         GPIO.cleanup()
-
-
-# if __name__ == "__main__":
-#     main()

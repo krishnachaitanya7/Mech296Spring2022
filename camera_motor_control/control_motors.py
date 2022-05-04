@@ -1,49 +1,49 @@
 from wheel_control import MotionController
 import time
 import cv2
+import signal
+from time import sleep
+import PySimpleGUI as sg
 
 mc = MotionController()
+# Detect the ctrl+c key combo
+def ctrlc_handler(signal, frame):
+    print("\nYou pressed Ctrl+C!")
+    for _ in range(2):
+        mc.stop()
+    exit(0)
+
 
 if __name__ == "__main__":
-    for _ in range(4):
-        start_time = time.time()
-        while time.time() - start_time < 5:
-            #d\print(f"Turning left")
-            mc.go_left(80, 80)
+    signal.signal(signal.SIGINT, ctrlc_handler)
+    sg.theme("SandyBeach")
+    # Very basic window.
+    # Return values using
+    # automatic-numbered keys
+    layout = [
+        [sg.Text("Please enter the parameters")],
+        [sg.Text("Left PWM", size=(15, 1)), sg.InputText()],
+        [sg.Text("Right PWM", size=(15, 1)), sg.InputText()],
+    ]
+    window = sg.Window("Simple data entry window", layout)
+    while True:
+        _, values = window.read(timeout=100)
+        try:
+            pwm_left = int(values[0])
+        except:
+            pwm_left = 0
+        try:
+            pwm_right = int(values[1])
+        except:
+            pwm_right = 0
 
         start_time = time.time()
-        while time.time() - start_time < 2:
-            #print(f"Stopping")
-            mc.stop()
-    # for _ in range(4):
-    #     start_time = time.time()
-    #     while time.time() - start_time < 0.41:
-    #         print(f"Turning Right")
-    #         mc.go_left(-100, 100)
-    #     start_time = time.time()
-    #     while time.time() - start_time < 2:
-    #         print(f"Stopping")
-    #         mc.stop()
-    # for _ in range(4):
-    #     start_time = time.time()
-    #     while time.time() - start_time < 0.8:
-    #         print(f"Turning Right")
-    #         mc.go_left(100, 0)
-    #     start_time = time.time()
-    #     while time.time() - start_time < 2:
-    #         print(f"Stopping")
-    #         mc.stop()
+        while time.time() - start_time < 2.0:
+            print(f"Turning left")
+            mc.go_left_and_right(pwm_left, pwm_right)
+            sleep(2.0)
 
-    # while time.time() - start_time < 10:
-    #     print(f"Going forwards")
-    #     mc.go_forward(90)
-    #     time.sleep(0.1)
-    # start_time = time.time()
-    # while time.time() - start_time < 5:
-    #     print(f"Stopping")
-    #     mc.stop()
-    # start_time = time.time()
-    # while time.time() - start_time < 10:
-    #     print(f"Going backwards")
-    #     mc.go_backward(90)
-    #     time.sleep(0.1)
+        # start_time = time.time()
+        # while time.time() - start_time < 2:
+        #     print(f"Stopping")
+        #     mc.stop()
