@@ -40,6 +40,8 @@ class GoToCenter:
         self.low_thresh = None
         self.high_thresh = None
         self.bottom_color = None
+        self.stop_moving = False
+        self.first_color = None
         self.mc = MotionController()
         self.go_to_center()
 
@@ -49,15 +51,15 @@ class GoToCenter:
         try:
             lower_h = int(values[0])
         except:
-            lower_h = 94
+            lower_h = 17
         try:
             lower_s = int(values[1])
         except:
-            lower_s = 80
+            lower_s = 150
         try:
             lower_v = int(values[2])
         except:
-            lower_v = 2
+            lower_v = 90
         try:
             higher_h = int(values[3])
         except:
@@ -79,7 +81,7 @@ class GoToCenter:
         if self.initilize_gui:
             lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = self.read_gui_input()
         else:
-            lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = 17, 150, 90, 126, 255, 255
+            lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = 80, 10, 10, 140, 269, 193
         # define range of blue color in HSV
         lower_blue = np.array([lower_h, lower_s, lower_v])
         upper_blue = np.array([higher_h, higher_s, higher_v])
@@ -126,7 +128,7 @@ class GoToCenter:
             if keyCode == 27 or keyCode == ord("q"):
                 raise Exception("User exit")
         if countour_area is not None:
-            return (blue_mask, mask_green, self.bottom_color, countour_area)
+            return (blue_mask, mask_green, self.bottom_color, countour_area, blue_percent, green_percent)
         else:
             return (blue_mask, mask_green, self.bottom_color, None)
 
@@ -175,20 +177,29 @@ class GoToCenter:
         cap = cv2.VideoCapture(gsp(flip_method=0), cv2.CAP_GSTREAMER)
         if cap.isOpened():
             try:
+
                 while True:
                     ret, img = cap.read()
-                    blue_mask, mask_green, self.bottom_color, countour_area = self.get_blue_green_masks(img)
+                    (
+                        blue_mask,
+                        mask_green,
+                        self.bottom_color,
+                        countour_area,
+                        blue_percent,
+                        _,
+                    ) = self.get_blue_green_masks(img)
                     if countour_area is not None:
-                        if self.bottom_color == "blue":
-                            print(f"Bottom color is blue")
+                        if self.get_bottom_color(blue_mask, mask_green) == "blue":
                             if countour_area > 23000:
-                                # while self.get_bottom_color(blue_mask, mask_green) == "blue":
                                 self.move_forward()
                             else:
                                 self.turn_left()
-                        else:
-                            print(f"Bottom color is green")
-                            self.mc.stop()
+
+                        if self.get_bottom_color(blue_mask, mask_green) == "green":
+                            if countour_area > 100000 and blue_percent > 6:
+                                self.move_forward()
+                            else:
+                                self.turn_left()
 
                     if self.show_plots:
                         cv2.imshow("CSI Camera", img)
@@ -196,6 +207,10 @@ class GoToCenter:
                         # Stop the program on the ESC key or 'q'
                         if keyCode == 27 or keyCode == ord("q"):
                             raise Exception("User exit")
+                    if self.first_color is None:
+                        self.first_color = self.bottom_color
+                    if self.first_color != self.bottom_color:
+                        break
             finally:
                 cap.release()
                 cv2.destroyAllWindows()
@@ -204,4 +219,4 @@ class GoToCenter:
 
 
 if __name__ == "__main__":
-    GoToCenter(initilize_gui=False, show_plots=True)
+    GoToCenter(initilize_gui=True, show_plots=True)
