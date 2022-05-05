@@ -72,7 +72,8 @@ class MotionController:
             # Both are greater than 0
             self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
 
-        self._left_duty_cycle = abs(left_duty_cycle)
+        self._left_duty_cycle = abs(left_duty_cycle) * 0.9
+
         self._right_duty_cycle = abs(right_duty_cycle)
         self.left_wheel_pwm.start(self._left_duty_cycle)
         self.right_wheel_pwm.start(self._right_duty_cycle)

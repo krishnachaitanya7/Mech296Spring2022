@@ -11,6 +11,7 @@ def main():
     # find the number of images in camera_calibrartion_images
     image_path = os.path.join(os.path.dirname(__file__), "camera_calibration_images")
     image_count = len(glob.glob1(image_path, "*.jpg"))
+    image_count = 100
     image_count += 1
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
     cap = cv2.VideoCapture(gsp(flip_method=0), cv2.CAP_GSTREAMER)
