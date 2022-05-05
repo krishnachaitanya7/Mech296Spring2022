@@ -42,6 +42,7 @@ class GoToCenter:
         self.bottom_color = None
         self.stop_moving = False
         self.first_color = None
+        self.go_forward_only = False
         self.mc = MotionController()
         self.go_to_center()
 
@@ -82,6 +83,7 @@ class GoToCenter:
             lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = self.read_gui_input()
         else:
             lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = 80, 10, 10, 140, 269, 193
+            # lower_h, lower_s, lower_v, higher_h, higher_s, higher_v = 17, 150, 90, 126, 255, 255
         # define range of blue color in HSV
         lower_blue = np.array([lower_h, lower_s, lower_v])
         upper_blue = np.array([higher_h, higher_s, higher_v])
@@ -130,7 +132,7 @@ class GoToCenter:
         if countour_area is not None:
             return (blue_mask, mask_green, self.bottom_color, countour_area, blue_percent, green_percent)
         else:
-            return (blue_mask, mask_green, self.bottom_color, None)
+            return (blue_mask, mask_green, self.bottom_color, None, blue_percent, green_percent)
 
     def get_bottom_color(self, blue_mask, mask_green):
         # Bitwise-AND mask and original image
@@ -189,28 +191,33 @@ class GoToCenter:
                         _,
                     ) = self.get_blue_green_masks(img)
                     if countour_area is not None:
-                        if self.get_bottom_color(blue_mask, mask_green) == "blue":
-                            if countour_area > 23000:
+                        # if self.get_bottom_color(blue_mask, mask_green) == "blue":
+                        #     self.bottom_color = "blue"
+                        #     if countour_area > 21000:
+                        #         self.move_forward()
+                        #     else:
+                        #         self.turn_left()
+                        if not self.go_forward_only:
+                            if self.get_bottom_color(blue_mask, mask_green) == "green":
+                                self.bottom_color = "green"
+                                if countour_area > 170000 and blue_percent > 9:
+                                    self.go_forward_only = True
+                                else:
+                                    self.turn_left()
+                        else:
+                            if self.bottom_color == "green":
                                 self.move_forward()
-                            else:
-                                self.turn_left()
-
-                        if self.get_bottom_color(blue_mask, mask_green) == "green":
-                            if countour_area > 100000 and blue_percent > 6:
-                                self.move_forward()
-                            else:
-                                self.turn_left()
-
                     if self.show_plots:
                         cv2.imshow("CSI Camera", img)
                         keyCode = cv2.waitKey(1) & 0xFF
                         # Stop the program on the ESC key or 'q'
                         if keyCode == 27 or keyCode == ord("q"):
                             raise Exception("User exit")
-                    if self.first_color is None:
-                        self.first_color = self.bottom_color
-                    if self.first_color != self.bottom_color:
-                        break
+                    # if self.first_color is None:
+                    #     self.first_color = self.bottom_color
+                    # if self.first_color != self.bottom_color:
+                    #     print(f"Color changed from {self.first_color} to {self.bottom_color}")
+
             finally:
                 cap.release()
                 cv2.destroyAllWindows()
@@ -219,4 +226,4 @@ class GoToCenter:
 
 
 if __name__ == "__main__":
-    GoToCenter(initilize_gui=True, show_plots=True)
+    GoToCenter(initilize_gui=False, show_plots=True)
