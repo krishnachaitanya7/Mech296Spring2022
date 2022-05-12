@@ -6,15 +6,15 @@ import time
 
 
 def turn_left(mc):
-    mc.go_left_and_right(-60, 60)
-    time.sleep(0.01)
+    mc.go_left_and_right(-80, 80)
+    time.sleep(0.1)
     mc.stop()
     time.sleep(0.01)
 
 
 def move_forward(mc):
-    mc.go_left_and_right(60, 60)
-    time.sleep(0.01)
+    mc.go_left_and_right(80, 80)
+    time.sleep(0.1)
     mc.stop()
     time.sleep(0.01)
 
