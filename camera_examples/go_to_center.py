@@ -8,6 +8,7 @@ from math import pi
 import PySimpleGUI as sg
 from wheel_control import MotionController
 import time
+import pyrealsense2 as rs
 
 
 class GoToCenter:
