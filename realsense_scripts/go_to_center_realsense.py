@@ -3,18 +3,19 @@ import numpy as np
 import cv2
 from wheel_control import MotionController
 import time
+import math
 
 
 def turn_left(mc):
-    mc.go_left_and_right(-80, 80)
-    time.sleep(0.1)
+    mc.go_left_and_right(-60, 60)
+    time.sleep(0.2)
     mc.stop()
     time.sleep(0.01)
 
 
 def move_forward(mc):
-    mc.go_left_and_right(80, 80)
-    time.sleep(0.1)
+    mc.go_left_and_right(60, 60)
+    time.sleep(0.15)
     mc.stop()
     time.sleep(0.01)
 
@@ -53,23 +54,42 @@ class realsense_cam:
 def main():
     cam = realsense_cam()
     mc = MotionController()
+    start_time = time.time()
     while True:
         color_image, depth_image = cam.get_frames()
         # Draw a rectangle over the color_image
-        cv2.rectangle(color_image, (300, 15), (340, 25), (0, 255, 0), 2)
+        # cv2.rectangle(color_image, (300, 15), (340, 25), (0, 255, 0), 2)
+        cv2.rectangle(color_image, (310, 60), (330, 70), (0, 255, 0), 2)
         cv2.imshow("color", color_image)
-        cv2.imshow("depth", depth_image)
+        # cv2.imshow("depth", depth_image)
         _, _, depth_value = cam.get_pixel_depth(320, 20)
+        _, _, inside_goal_depth = cam.get_pixel_depth(320, 65)
         # Algorithm Start
-        print(f"Depth: {depth_value}")
-        if depth_value > 0.68:
+        # print(f"Depth: {depth_value}")
+        print(f"Top of Goal Depth: {depth_value} Inside Goal Depth: {inside_goal_depth}")
+        if depth_value > 0.69:
             move_forward(mc)
-        else:
+        elif depth_value < 0.67:
             turn_left(mc)
+        else:
+            if time.time() - start_time > 10 and inside_goal_depth > 0.8:
+                mc.stop()
+                time.sleep(0.5)
+                break
+            else:
+                turn_left(mc)
+                # prev_depth_value = math.inf
+                # _, _, depth_value = cam.get_pixel_depth(320, 20)
+                # while prev_depth_value > depth_value:
+                #     turn_left(mc)
+                #     prev_depth_value = depth_value
+                #     _, _, depth_value = cam.get_pixel_depth(320, 20)
+                #     break
         # Algorithm End
         keyCode = cv2.waitKey(1) & 0xFF
         if keyCode == 27 or keyCode == ord("q"):
             break
+    mc.stop()
     cam.close()
 
 
