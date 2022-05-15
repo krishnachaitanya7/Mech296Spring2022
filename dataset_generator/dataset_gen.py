@@ -78,4 +78,34 @@ if __name__ == "__main__":
                 os.system(f'cp "{corresponding_xml_name}" "{cleaned_dataset_annotations}"')
             except:
                 print(f"This annotation file is not in the jpg files list: {each_annotation}")
+    # create extra folders according to the VOC
+    os.system(f"mkdir -p {cleaned_dataset}/ImageSets/Main")
+    # create labels.txt file
+    os.system(f"echo 'Goal\nSoccer Ball' > {cleaned_dataset}/labels.txt")
+    # read all jpg files in the cleaned dataset
+    jpg_files = glob.glob(f"{cleaned_dataset_images}/*.jpg")
+    # divide them train test and validation
+    # jumble the list
+    np.random.shuffle(jpg_files)
+    train_jpg_files = jpg_files[: int(len(jpg_files) * 0.8)]
+    test_jpg_files = jpg_files[int(len(jpg_files) * 0.8) : int(len(jpg_files) * 0.9)]
+    val_jpg_files = jpg_files[int(len(jpg_files) * 0.9) :]
+    # create train.txt file
+    with open(f"{cleaned_dataset}/ImageSets/Main/train.txt", "w+") as f:
+        for each_file in train_jpg_files:
+            f.write(f"{os.path.basename(each_file)[:-4]}\n")
+    # create test.txt file
+    with open(f"{cleaned_dataset}/ImageSets/Main/test.txt", "w+") as f:
+        for each_file in test_jpg_files:
+            f.write(f"{os.path.basename(each_file)[:-4]}\n")
+    # create val.txt file
+    with open(f"{cleaned_dataset}/ImageSets/Main/val.txt", "w+") as f:
+        for each_file in val_jpg_files:
+            f.write(f"{os.path.basename(each_file)[:-4]}\n")
+    # create trainval.txt file
+    with open(f"{cleaned_dataset}/ImageSets/Main/trainval.txt", "w+") as f:
+        for each_file in train_jpg_files:
+            f.write(f"{os.path.basename(each_file)[:-4]}\n")
+        for each_file in val_jpg_files:
+            f.write(f"{os.path.basename(each_file)[:-4]}\n")
     print("Done")
