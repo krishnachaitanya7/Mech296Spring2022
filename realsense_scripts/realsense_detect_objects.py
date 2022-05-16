@@ -57,7 +57,11 @@ def main():
         for detection in detections:
             if detection.ClassID != 1:
                 x1, y1, x2, y2 = detection.ROI
-                print(detection.ClassID, detection.Confidence)
+                if detection.ClassID == 1:
+                    detected_class = "Goal"
+                elif detection.ClassID == 2:
+                    detected_class = "Soccer Ball"
+                print(f"Class: {detected_class}, Confidence: {detection.Confidence}")
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
