@@ -10,6 +10,7 @@ from wheel_control import MotionController
 # Constants
 ROTATION_PWM = 40
 MIDDLE_RANGE = np.arange(220, 420)
+REACHED_BALL_Y = 450
 
 
 def robot_go(mc, left_pwm, right_pwm):
@@ -88,6 +89,9 @@ def main():
                 robot_go(mc, 70, 100)
             elif centroid_x > MIDDLE_RANGE[-1]:
                 robot_go(mc, 100, 70)
+            if centroid_x in MIDDLE_RANGE[0] and centroid_y > REACHED_BALL_Y:
+                mc.stop()
+                print("Robot reached ball")
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
             robot_go(mc, -50, 50)
