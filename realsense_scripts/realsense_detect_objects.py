@@ -21,7 +21,7 @@ class realsense_cam:
                 "--input-blob=input_0",
                 "--output-cvg=scores",
                 "--output-bbox=boxes",
-                "--threshold=0.3",
+                "--threshold=0.4",
             ]
         )
         self.color_frame = None
