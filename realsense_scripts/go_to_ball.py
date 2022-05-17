@@ -9,8 +9,8 @@ from wheel_control import MotionController
 
 # Constants
 ROTATION_PWM = 40
-MIDDLE_RANGE = np.arange(220, 420)
-REACHED_BALL_Y = 420
+MIDDLE_RANGE = np.arange(220, 400)
+REACHED_BALL_Y = 400
 
 
 def robot_go(mc, left_pwm, right_pwm):
@@ -36,7 +36,7 @@ class realsense_cam:
                 "--input-blob=input_0",
                 "--output-cvg=scores",
                 "--output-bbox=boxes",
-                "--threshold=0.1",
+                "--threshold=0.2",
             ]
         )
         self.color_frame = None
