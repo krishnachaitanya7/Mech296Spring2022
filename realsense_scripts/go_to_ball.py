@@ -68,21 +68,25 @@ def main():
     cam = realsense_cam()
     mc = MotionController()
     while True:
+        best_ball = None
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
         # get the detection whith highest confidence of class 2
         all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
         all_ball_detections = [detection for detection in detections if detection.ClassID == 2]
-        best_goal = sorted(all_goal_detections, key=lambda x: x.Confidence, reverse=True)[0]
-        best_ball = sorted(all_ball_detections, key=lambda x: x.Confidence, reverse=True)[0]
-        x1, y1, x2, y2 = best_ball.ROI
-        centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-        if centroid_x in MIDDLE_RANGE:
-            robot_go(mc, 100, 100)
-        elif centroid_x < MIDDLE_RANGE[0]:
-            robot_go(mc, 70, 100)
-        elif centroid_x > MIDDLE_RANGE[-1]:
-            robot_go(mc, 100, 70)
+        if len(all_goal_detections) > 0:
+            best_goal = sorted(all_goal_detections, key=lambda x: x.Confidence, reverse=True)[0]
+        if len(all_ball_detections) > 0:
+            best_ball = sorted(all_ball_detections, key=lambda x: x.Confidence, reverse=True)[0]
+        if best_ball is not None:
+            x1, y1, x2, y2 = best_ball.ROI
+            centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+            if centroid_x in MIDDLE_RANGE:
+                robot_go(mc, 100, 100)
+            elif centroid_x < MIDDLE_RANGE[0]:
+                robot_go(mc, 70, 100)
+            elif centroid_x > MIDDLE_RANGE[-1]:
+                robot_go(mc, 100, 70)
         else:
             robot_go(mc, -60, 60)
         cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
