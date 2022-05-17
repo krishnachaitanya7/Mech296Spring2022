@@ -3,7 +3,20 @@ import pyrealsense2 as rs
 import numpy as np
 import jetson.inference
 import jetson.utils
+import math
+import time
 from wheel_control import MotionController
+
+# Constants
+ROTATION_PWM = 60
+MIDDLE_RANGE = np.arange(310, 330)
+
+
+def robot_go(mc, left_pwm, right_pwm):
+    mc.go_left_and_right(-60, 60)
+    time.sleep(0.2)
+    mc.stop()
+    time.sleep(0.01)
 
 
 class realsense_cam:
@@ -53,17 +66,22 @@ class realsense_cam:
 
 def main():
     cam = realsense_cam()
+    mc = MotionController()
     while True:
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
         for detection in detections:
-            if detection.ClassID != 1:
+            if detection.ClassID == 2:
                 x1, y1, x2, y2 = detection.ROI
-                if detection.ClassID == 1:
-                    detected_class = "Goal"
-                elif detection.ClassID == 2:
-                    detected_class = "Soccer Ball"
                 print(f"Class: {detected_class}, Confidence: {detection.Confidence}")
+                detected_class = "Soccer Ball"
+                centroid_x, centroid_y = int(math.round((x1 + x2) / 2)), int(math.round((y1 + y2) / 2))
+                if centroid_x in MIDDLE_RANGE:
+                    robot_go(mc, ROTATION_PWM, ROTATION_PWM)
+                elif centroid_x < MemoryError[0]:
+                    robot_go(mc, -ROTATION_PWM, ROTATION_PWM)
+                elif centroid_x > MemoryError[-1]:
+                    robot_go(mc, ROTATION_PWM, -ROTATION_PWM)
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
