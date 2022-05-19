@@ -9,15 +9,15 @@ from wheel_control import MotionController
 
 # Constants
 ROTATION_PWM = 40
-MIDDLE_RANGE = np.arange(220, 400)
-REACHED_BALL_Y = 400
+MIDDLE_RANGE = np.arange(220, 320)
+REACHED_BALL_Y = 350
 
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
     time.sleep(0.2)
     mc.stop()
-    # time.sleep(0.01)
+    # time.sleep(0.02)
 
 
 class realsense_cam:
@@ -36,7 +36,7 @@ class realsense_cam:
                 "--input-blob=input_0",
                 "--output-cvg=scores",
                 "--output-bbox=boxes",
-                "--threshold=0.2",
+                "--threshold=0.1",
             ]
         )
         self.color_frame = None
@@ -84,18 +84,19 @@ def main():
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
             print(f"Centroid: {centroid_x}, {centroid_y}, Confidence: {best_ball.Confidence}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 100, 100)
+                robot_go(mc, 80, 80)
             elif centroid_x < MIDDLE_RANGE[0]:
-                robot_go(mc, 70, 100)
+                robot_go(mc, 65, 80)
             elif centroid_x > MIDDLE_RANGE[-1]:
-                robot_go(mc, 100, 70)
+                robot_go(mc, 80, 65)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
                 mc.stop()
                 print("Robot reached ball")
                 break
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
-            robot_go(mc, -50, 50)
+            robot_go(mc, -45, 45)
+            time.sleep(0.02)
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
         if keyCode == 27 or keyCode == ord("q"):
