@@ -84,18 +84,18 @@ def main():
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
             print(f"Centroid: {centroid_x}, {centroid_y}, Confidence: {best_ball.Confidence}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 30, 30)
+                robot_go(mc, 100, 100)
             elif centroid_x < MIDDLE_RANGE[0]:
-                robot_go(mc, 25, 30)
+                robot_go(mc, 70, 100)
             elif centroid_x > MIDDLE_RANGE[-1]:
-                robot_go(mc, 30, 25)
+                robot_go(mc, 100, 70)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
                 mc.stop()
                 print("Robot reached ball")
                 break
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
-            robot_go(mc, -15, 15)
+            robot_go(mc, -50, 50)
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
         if keyCode == 27 or keyCode == ord("q"):
