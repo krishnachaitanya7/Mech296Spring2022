@@ -27,6 +27,9 @@ class SolenoidController:
             self.fire()
             sleep(0.1)
 
+    def stop(self):
+        GPIO.output(self.solenoid_pin, GPIO.LOW)
+
 
 class MotionController:
     def __init__(self):

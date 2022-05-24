@@ -11,6 +11,7 @@ import jetson.utils
 ROTATION_PWM = 40
 MIDDLE_RANGE = np.arange(220, 320)
 REACHED_BALL_Y = 350
+REACHED_GOAL_Y = 180
 
 
 def robot_go(mc, left_pwm, right_pwm):
@@ -84,7 +85,7 @@ class realsense_cam:
         self.pipeline.stop()
 
 
-def main():
+def go_to_ball():
     cam = realsense_cam()
     mc = MotionController()
     while True:
@@ -105,14 +106,14 @@ def main():
             depth_val = cam.get_pixel_depth(centroid_x, centroid_y)
             print(f"Ball Depth: {depth_val}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 35, 35)
+                robot_go(mc, 30, 30)
             elif centroid_x < MIDDLE_RANGE[0]:
-                robot_go(mc, 25, 35)
+                robot_go(mc, 20, 30)
             elif centroid_x > MIDDLE_RANGE[-1]:
-                robot_go(mc, 35, 25)
+                robot_go(mc, 30, 20)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
                 mc.stop()
-                # break
+                break
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
             robot_go(mc, -20, 20)
@@ -123,9 +124,55 @@ def main():
         if keyCode == 27 or keyCode == ord("q"):
             cv2.destroyAllWindows()
             break
-    mc.stop()
+    # mc.stop()
     cv2.destroyAllWindows()
-    time.sleep(0.01)
+    # time.sleep(0.01)
+    cam.close()
+
+
+def go_to_goal(goal_color):
+    cam = realsense_cam()
+    mc = MotionController()
+    while True:
+        best_goal = None
+        color_image, _ = cam.get_frames()
+        detections = cam.detect_objects(color_image)
+        # get the detection whith highest confidence of class 2
+        all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
+        if len(all_goal_detections) > 0:
+            best_goal = sorted(all_goal_detections, key=lambda x: x.Confidence, reverse=True)[0]
+        if best_goal is not None:
+            x1, y1, x2, y2 = best_goal.ROI
+            centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+            print(f"Centroid: {centroid_x}, {centroid_y}, Confidence: {best_goal.Confidence}")
+            if centroid_x in MIDDLE_RANGE:
+                robot_go(mc, 30, 30)
+            elif centroid_x < MIDDLE_RANGE[0]:
+                robot_go(mc, 20, 30)
+            elif centroid_x > MIDDLE_RANGE[-1]:
+                robot_go(mc, 30, 20)
+            if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_GOAL_Y:
+                mc.stop()
+                break
+            cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+        else:
+            robot_go(mc, 5, 25)
+            time.sleep(0.02)
+        cv2.imshow("color_image", color_image)
+        # cv2.imshow("depth_image", depth_image)
+        keyCode = cv2.waitKey(1) & 0xFF
+        if keyCode == 27 or keyCode == ord("q"):
+            cv2.destroyAllWindows()
+            break
+    cv2.destroyAllWindows()
+    cam.close()
+
+
+def main():
+    # go_to_ball()
+    # once the ball is reached, go to the goal
+    # sleep(0.5)
+    go_to_goal("blue")
 
 
 if __name__ == "__main__":
