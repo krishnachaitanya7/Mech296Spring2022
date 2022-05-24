@@ -6,6 +6,26 @@ busybox devmem 0x70003248 32 0x46
 busybox devmem 0x6000d100 32 0x00
 """
 import RPi.GPIO as GPIO
+from time import sleep
+
+
+class SolenoidController:
+    def __init__(self):
+        self.solenoid_pin = 29
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.solenoid_pin, GPIO.OUT, initial=GPIO.LOW)
+
+    def fire(self):
+        GPIO.output(self.solenoid_pin, GPIO.HIGH)
+        sleep(0.05)
+        GPIO.output(self.solenoid_pin, GPIO.LOW)
+        sleep(0.01)
+        print("Solenoid fired!")
+
+    def machine_gun(self):
+        for _ in range(0, 10):
+            self.fire()
+            sleep(0.1)
 
 
 class MotionController:
@@ -72,7 +92,7 @@ class MotionController:
             # Both are greater than 0
             self.set_wheel_alignment(GPIO.HIGH, GPIO.LOW, GPIO.HIGH, GPIO.LOW)
 
-        self._left_duty_cycle = abs(left_duty_cycle) * 0.9
+        self._left_duty_cycle = abs(left_duty_cycle)
 
         self._right_duty_cycle = abs(right_duty_cycle)
         self.left_wheel_pwm.start(self._left_duty_cycle)
