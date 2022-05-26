@@ -12,12 +12,12 @@ import jetson.utils
 ROTATION_PWM = 40
 
 REACHED_BALL_Y = 400
-REACHED_GOAL_Y = 150
+REACHED_GOAL_Y = 195
 
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.15)
+    time.sleep(0.13)
     mc.stop()
 
 
@@ -140,7 +140,7 @@ def go_to_ball():
 
 def go_to_goal(goal_color):
     while True:
-        MIDDLE_RANGE = np.arange(220, 320)
+        MIDDLE_RANGE = np.arange(240, 300)
         best_goal = None
         best_ball = None
         color_image, _ = cam.get_frames()
@@ -195,7 +195,7 @@ def go_to_goal(goal_color):
                     break
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             else:
-                robot_go(mc, -15, 20)
+                robot_go(mc, -13, 22)
                 # time.sleep(0.02)
         else:
             print("Ball not detected")
