@@ -211,4 +211,4 @@ def go_to_goal(goal_color):
 
 
 if __name__ == "__main__":
-    go_to_goal("blue")
+    go_to_goal("green")
