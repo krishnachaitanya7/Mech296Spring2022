@@ -10,7 +10,7 @@ import jetson.utils
 
 # Constants
 ROTATION_PWM = 40
-MIDDLE_RANGE = np.arange(220, 320)
+MIDDLE_RANGE = np.arange(240, 300)
 REACHED_BALL_Y = 300
 REACHED_GOAL_Y = 150
 

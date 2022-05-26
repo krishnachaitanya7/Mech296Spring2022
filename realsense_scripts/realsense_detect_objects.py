@@ -55,6 +55,7 @@ def main():
     cam = realsense_cam()
     while True:
         best_goal = None
+        best_ball = None
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
         # get the detection whith highest confidence of class 2
@@ -71,6 +72,13 @@ def main():
             )
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
             print(f"Centroid: {centroid_x}, {centroid_y}, Ball Confidence: {best_ball.Confidence}")
+        if best_goal is not None:
+            x1, y1, x2, y2 = best_goal.ROI
+            cv2.rectangle(
+                color_image, (int(round(x1)), int(round(y1))), (int(round(x2)), int(round(y2))), (255, 0, 0), 2
+            )
+            centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+            print(f"Centroid: {centroid_x}, {centroid_y}, Goal Confidence: {best_goal.Confidence}")
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
         if keyCode == 27 or keyCode == ord("q"):
