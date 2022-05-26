@@ -10,31 +10,36 @@ import jetson.utils
 
 # Constants
 ROTATION_PWM = 40
-MIDDLE_RANGE = np.arange(240, 300)
-REACHED_BALL_Y = 300
+
+REACHED_BALL_Y = 400
 REACHED_GOAL_Y = 150
 
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.2)
+    time.sleep(0.15)
     mc.stop()
 
 
 def detect_bottom_color(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lower_green = np.array([40, 40, 40])
-    upper_green = np.array([70, 255, 255])
-    lower_blue = np.array([17, 150, 90])
-    upper_blue = np.array([126, 255, 255])
+    # lower_green = np.array([40, 40, 40])
+    # upper_green = np.array([70, 255, 255])
+    lower_blue = np.array([80, 10, 10])
+    upper_blue = np.array([140, 269, 193])
     blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    green_mask = cv2.inRange(hsv, lower_green, upper_green)
-    num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
+    # green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    # num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
     num_blue_pixels = (np.sum(blue_mask) / 255) / (blue_mask.shape[0] * blue_mask.shape[1]) * 100
-    if num_green_pixels > num_blue_pixels:
-        return "green"
-    else:
+    # cv2.imshow("green_mask", green_mask)
+    # cv2.imshow("blue_mask", blue_mask)
+    # keyCode = cv2.waitKey(1) & 0xFF
+    # if keyCode == 27 or keyCode == ord("q"):
+    #     cv2.destroyAllWindows()
+    if num_blue_pixels > 0:
         return "blue"
+    else:
+        return "green"
 
 
 class realsense_cam:
@@ -93,6 +98,7 @@ solenoid_controller = SolenoidController()
 
 def go_to_ball():
     while True:
+        MIDDLE_RANGE = np.arange(240, 300)
         best_ball = None
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
@@ -110,34 +116,36 @@ def go_to_ball():
             depth_val = cam.get_pixel_depth(centroid_x, centroid_y)
             print(f"Ball Depth: {depth_val}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 25, 25)
+                robot_go(mc, 20, 20)
             elif centroid_x < MIDDLE_RANGE[0]:
                 robot_go(mc, 18, 25)
             elif centroid_x > MIDDLE_RANGE[-1]:
                 robot_go(mc, 25, 18)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
-                mc.stop()
+                # mc.stop()
                 break
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
             robot_go(mc, -20, 20)
-            time.sleep(0.02)
-        cv2.imshow("color_image", color_image)
-        # cv2.imshow("depth_image", depth_image)
-        keyCode = cv2.waitKey(1) & 0xFF
-        if keyCode == 27 or keyCode == ord("q"):
-            cv2.destroyAllWindows()
-            break
+            # time.sleep(0.01)
+        # cv2.imshow("color_image", color_image)
+        # # cv2.imshow("depth_image", depth_image)
+        # keyCode = cv2.waitKey(1) & 0xFF
+        # if keyCode == 27 or keyCode == ord("q"):
+        #     cv2.destroyAllWindows()
+        #     break
     print("Got the ball, moving to goal")
     # go_to_goal("blue")
 
 
 def go_to_goal(goal_color):
     while True:
+        MIDDLE_RANGE = np.arange(220, 320)
         best_goal = None
         best_ball = None
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
+        # print(f"Bottom Color: {detect_bottom_color(color_image)}")
         # get the detection whith highest confidence of class 2
         all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
         all_ball_detections = [detection for detection in detections if detection.ClassID == 2]
@@ -145,6 +153,21 @@ def go_to_goal(goal_color):
             best_ball = sorted(all_ball_detections, key=lambda x: x.Confidence, reverse=True)[0]
         if len(all_goal_detections) > 0:
             best_goal = sorted(all_goal_detections, key=lambda x: x.Confidence, reverse=True)[0]
+            x1, y1, x2, y2 = best_goal.ROI
+            # round all coordinates
+            x1, y1, x2, y2 = int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))
+            # generate mask to keep only the line (x1+2,y2+2) and (x2+2,y2+2) in the image
+            mask = np.zeros(color_image.shape[:2], dtype="uint8")
+            cv2.line(mask, (x1, y2 + 2), (x2, y2 + 2), 255, 2)
+            # get the masked image
+            masked_image = cv2.bitwise_and(color_image, color_image, mask=mask)
+            # get the masked image's color
+            detected_goal_color = detect_bottom_color(masked_image)
+            print(f"Goal Color: {detected_goal_color}")
+            # cv2.imshow("masked_image", masked_image)
+            # cv2.waitKey(1)
+            if detected_goal_color != goal_color:
+                best_goal = None
 
         if best_ball is not None:
             x1, y1, x2, y2 = best_ball.ROI
@@ -154,14 +177,17 @@ def go_to_goal(goal_color):
             if best_goal is not None:
                 x1, y1, x2, y2 = best_goal.ROI
                 centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+                goal_depth = cam.get_pixel_depth(centroid_x, centroid_y)
+                print(f"Depth of Goal Centroid {goal_depth}")
                 print(f"Goal Centroid: {centroid_x}, {centroid_y}, Confidence: {best_goal.Confidence}")
+                # if goal_depth > 0.8:
                 if centroid_x in MIDDLE_RANGE:
-                    robot_go(mc, 30, 30)
+                    robot_go(mc, 20, 20)
                     # solenoid_controller.machine_gun()
                 elif centroid_x < MIDDLE_RANGE[0]:
-                    robot_go(mc, 20, 30)
+                    robot_go(mc, 18, 25)
                 elif centroid_x > MIDDLE_RANGE[-1]:
-                    robot_go(mc, 30, 20)
+                    robot_go(mc, 25, 18)
                 if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_GOAL_Y:
                     mc.stop()
                     print(f"stopping reached the goal. Centroid: {centroid_x}, {centroid_y}")
@@ -169,17 +195,17 @@ def go_to_goal(goal_color):
                     break
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             else:
-                robot_go(mc, 25, 10)
-                time.sleep(0.02)
+                robot_go(mc, -15, 20)
+                # time.sleep(0.02)
         else:
             print("Ball not detected")
             go_to_ball()
-        cv2.imshow("color_image", color_image)
-        # cv2.imshow("depth_image", depth_image)
-        keyCode = cv2.waitKey(1) & 0xFF
-        if keyCode == 27 or keyCode == ord("q"):
-            cv2.destroyAllWindows()
-            break
+        # cv2.imshow("color_image", color_image)
+        # # cv2.imshow("depth_image", depth_image)
+        # keyCode = cv2.waitKey(1) & 0xFF
+        # if keyCode == 27 or keyCode == ord("q"):
+        #     cv2.destroyAllWindows()
+        #     break
     cv2.destroyAllWindows()
     cam.close()
 
