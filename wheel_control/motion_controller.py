@@ -17,9 +17,9 @@ class SolenoidController:
 
     def fire(self):
         GPIO.output(self.solenoid_pin, GPIO.HIGH)
-        sleep(1.0)
+        sleep(0.05)
         GPIO.output(self.solenoid_pin, GPIO.LOW)
-        sleep(1.0)
+        sleep(0.01)
         print("Solenoid fired!")
 
     def machine_gun(self):
