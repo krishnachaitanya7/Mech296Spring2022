@@ -11,14 +11,27 @@ import jetson.utils
 # Constants
 ROTATION_PWM = 40
 
-REACHED_BALL_Y = 350
+REACHED_BALL_Y = 410
 REACHED_GOAL_Y = 195
 
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.13)
+    time.sleep(0.1)
     mc.stop()
+
+
+def turn_with_ball(mc, left_pwm, right_pwm):
+    mc.go_left_and_right(left_pwm, right_pwm)
+    time.sleep(0.15)
+    mc.stop()
+
+
+def kalashnikov(mc, solenoid_control, left_pwm, right_pwm):
+    for _ in range(0, 3):
+        mc.go_left_and_right(left_pwm, right_pwm)
+        solenoid_control.fire()
+        sleep(0.1)
 
 
 def detect_bottom_color(img):
@@ -126,7 +139,7 @@ def go_to_ball():
                 break
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
         else:
-            robot_go(mc, -20, 20)
+            robot_go(mc, -25, 20)
             # time.sleep(0.01)
         # cv2.imshow("color_image", color_image)
         # # cv2.imshow("depth_image", depth_image)
@@ -182,8 +195,9 @@ def go_to_goal(goal_color):
                 print(f"Goal Centroid: {centroid_x}, {centroid_y}, Confidence: {best_goal.Confidence}")
                 # if goal_depth > 0.8:
                 if centroid_x in MIDDLE_RANGE:
-                    robot_go(mc, 20, 20)
+                    # robot_go(mc, 20, 20)
                     # solenoid_controller.machine_gun()
+                    kalashnikov(mc, solenoid_controller, 20, 20)
                 elif centroid_x < MIDDLE_RANGE[0]:
                     robot_go(mc, 18, 25)
                 elif centroid_x > MIDDLE_RANGE[-1]:
@@ -195,7 +209,7 @@ def go_to_goal(goal_color):
                     break
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
             else:
-                robot_go(mc, -13, 22)
+                turn_with_ball(mc, 10, 25)
                 # time.sleep(0.02)
         else:
             print("Ball not detected")
