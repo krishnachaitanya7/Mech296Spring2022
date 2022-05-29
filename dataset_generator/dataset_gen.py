@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # create extra folders according to the VOC
     os.system(f"mkdir -p {cleaned_dataset}/ImageSets/Main")
     # create labels.txt file
-    os.system(f"echo 'BACKGROUND\nGoal\nSoccer Ball' > {cleaned_dataset}/labels.txt")
+    os.system(f"echo 'Goal\nSoccer Ball\nrobot' > {cleaned_dataset}/labels.txt")
     # read all jpg files in the cleaned dataset
     jpg_files = glob.glob(f"{cleaned_dataset_images}/*.jpg")
     # divide them train test and validation
