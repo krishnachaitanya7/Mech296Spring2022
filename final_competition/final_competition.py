@@ -11,7 +11,7 @@ import jetson.utils
 # Constants
 ROTATION_PWM = 40
 
-REACHED_BALL_Y = 400
+REACHED_BALL_Y = 350
 REACHED_GOAL_Y = 195
 
 
@@ -211,4 +211,4 @@ def go_to_goal(goal_color):
 
 
 if __name__ == "__main__":
-    go_to_goal("green")
+    go_to_goal("blue")

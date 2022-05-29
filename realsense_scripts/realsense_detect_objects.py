@@ -61,24 +61,34 @@ def main():
         # get the detection whith highest confidence of class 2
         all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
         all_ball_detections = [detection for detection in detections if detection.ClassID == 2]
+        all_robot_detections = [detection for detection in detections if detection.ClassID == 3]
         if len(all_goal_detections) > 0:
             best_goal = sorted(all_goal_detections, key=lambda x: x.Confidence, reverse=True)[0]
         if len(all_ball_detections) > 0:
             best_ball = sorted(all_ball_detections, key=lambda x: x.Confidence, reverse=True)[0]
+        if len(all_robot_detections) > 0:
+            best_robot = sorted(all_robot_detections, key=lambda x: x.Confidence, reverse=True)[0]
         if best_ball is not None:
             x1, y1, x2, y2 = best_ball.ROI
             cv2.rectangle(
                 color_image, (int(round(x1)), int(round(y1))), (int(round(x2)), int(round(y2))), (0, 255, 0), 2
             )
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-            print(f"Centroid: {centroid_x}, {centroid_y}, Ball Confidence: {best_ball.Confidence}")
+            print(f"Ball Centroid: {centroid_x}, {centroid_y}, Ball Confidence: {best_ball.Confidence}")
         if best_goal is not None:
             x1, y1, x2, y2 = best_goal.ROI
             cv2.rectangle(
                 color_image, (int(round(x1)), int(round(y1))), (int(round(x2)), int(round(y2))), (255, 0, 0), 2
             )
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-            print(f"Centroid: {centroid_x}, {centroid_y}, Goal Confidence: {best_goal.Confidence}")
+            print(f"Goal Centroid: {centroid_x}, {centroid_y}, Goal Confidence: {best_goal.Confidence}")
+        if best_robot is not None:
+            x1, y1, x2, y2 = best_robot.ROI
+            cv2.rectangle(
+                color_image, (int(round(x1)), int(round(y1))), (int(round(x2)), int(round(y2))), (0, 0, 255), 2
+            )
+            centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+            print(f"Robot Centroid: {centroid_x}, {centroid_y}, Robot Confidence: {best_robot.Confidence}")
         cv2.imshow("color_image", color_image)
         keyCode = cv2.waitKey(1) & 0xFF
         if keyCode == 27 or keyCode == ord("q"):
