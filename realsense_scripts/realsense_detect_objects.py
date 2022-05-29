@@ -56,6 +56,7 @@ def main():
     while True:
         best_goal = None
         best_ball = None
+        best_robot = None
         color_image, _ = cam.get_frames()
         detections = cam.detect_objects(color_image)
         # get the detection whith highest confidence of class 2
