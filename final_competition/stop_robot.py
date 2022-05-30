@@ -9,5 +9,3 @@ if __name__ == "__main__":
         motion_controller.stop()
         solenoid_controller.stop()
         sleep(0.1)
-
-    # solenoid_controller.machine_gun()

@@ -13,6 +13,15 @@ ROTATION_PWM = 40
 
 REACHED_BALL_Y = 410
 REACHED_GOAL_Y = 195
+REACHED_WALL_Y = 400
+
+
+def backup_robot(mc, left_pwm, right_pwm):
+    mc.stop()
+    time.sleep(0.5)
+    mc.go_left_and_right(left_pwm, right_pwm)
+    time.sleep(0.1)
+    mc.stop()
 
 
 def robot_go(mc, left_pwm, right_pwm):
@@ -64,6 +73,7 @@ class realsense_cam:
         self.align = rs.align(rs.stream.color)
         pipeline.start(config)
         self.pipeline = pipeline
+        # self.mobilenet = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
         self.net = jetson.inference.detectNet(
             argv=[
                 "--model=/home/robotvision/PycharmProjects/Mech296Spring2022/networks/my_network/mb1_ssd.onnx",
@@ -74,7 +84,7 @@ class realsense_cam:
                 "--threshold=0.1",
             ]
         )
-        self.mobilenet = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
+        self.mobilenet = self.net
         self.colorizer = rs.colorizer()
         self.color_frame = None
         self.depth_frame = None
@@ -100,6 +110,19 @@ class realsense_cam:
     def detect_objects(self, img):
         detections = self.mobilenet.Detect(jetson.utils.cudaFromNumpy(img))
         return detections
+
+    def detect_wall(self, img):
+        best_person = None
+        detections = self.mobilenet.Detect(jetson.utils.cudaFromNumpy(img))
+        all_person_detections = [detection for detection in detections if detection.ClassID == 1]
+        if len(all_person_detections) > 0:
+            best_person = max(all_person_detections, key=lambda x: x.Confidence)
+        if best_person is not None:
+            x1, y1, x2, y2 = best_person.ROI
+            centroid_x, centroid_y = (x1 + x2) / 2, (y1 + y2) / 2
+            return centroid_x, centroid_y
+        else:
+            return None, None
 
     def close(self):
         self.pipeline.stop()
@@ -142,12 +165,12 @@ def go_to_ball():
         else:
             robot_go(mc, -25, 20)
             # time.sleep(0.01)
-        # cv2.imshow("color_image", color_image)
-        # # cv2.imshow("depth_image", depth_image)
-        # keyCode = cv2.waitKey(1) & 0xFF
-        # if keyCode == 27 or keyCode == ord("q"):
-        #     cv2.destroyAllWindows()
-        #     break
+        cv2.imshow("color_image", color_image)
+        # cv2.imshow("depth_image", depth_image)
+        keyCode = cv2.waitKey(1) & 0xFF
+        if keyCode == 27 or keyCode == ord("q"):
+            cv2.destroyAllWindows()
+            break
     print("Got the ball, moving to goal")
     # go_to_goal("blue")
 
@@ -158,7 +181,15 @@ def go_to_goal(goal_color):
         best_goal = None
         best_ball = None
         color_image, _ = cam.get_frames()
+        # detect wall
+        # _, wall_y = cam.detect_wall(color_image)
+        # if wall_y is not None:
+        #     if wall_y > REACHED_WALL_Y:
+        #         backup_robot(mc, -20, -20)
+        #         print(f"Wall Centroid Y: {wall_y}")
+        #         continue
         detections = cam.detect_objects(color_image)
+
         # print(f"Bottom Color: {detect_bottom_color(color_image)}")
         # get the detection whith highest confidence of class 2
         all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
@@ -190,22 +221,22 @@ def go_to_goal(goal_color):
             cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
             if best_goal is not None:
                 x1, y1, x2, y2 = best_goal.ROI
-                centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-                goal_depth = cam.get_pixel_depth(centroid_x, centroid_y)
+                centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+                goal_depth = cam.get_pixel_depth(centroid_x_goal, centroid_y_goal)
                 print(f"Depth of Goal Centroid {goal_depth}")
-                print(f"Goal Centroid: {centroid_x}, {centroid_y}, Confidence: {best_goal.Confidence}")
+                print(f"Goal Centroid: {centroid_x_goal}, {centroid_y_goal}, Confidence: {best_goal.Confidence}")
                 # if goal_depth > 0.8:
-                if centroid_x in MIDDLE_RANGE:
+                if centroid_x_goal in MIDDLE_RANGE:
                     # robot_go(mc, 20, 20)
                     # solenoid_controller.machine_gun()
                     kalashnikov(mc, solenoid_controller, 20, 20)
-                elif centroid_x < MIDDLE_RANGE[0]:
+                elif centroid_x_goal < MIDDLE_RANGE[0]:
                     robot_go(mc, 18, 25)
-                elif centroid_x > MIDDLE_RANGE[-1]:
+                elif centroid_x_goal > MIDDLE_RANGE[-1]:
                     robot_go(mc, 25, 18)
-                if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_GOAL_Y:
+                if centroid_x_goal in MIDDLE_RANGE and centroid_y_goal > REACHED_GOAL_Y:
                     mc.stop()
-                    print(f"stopping reached the goal. Centroid: {centroid_x}, {centroid_y}")
+                    print(f"stopping reached the goal. Centroid: {centroid_x_goal}, {centroid_y_goal}")
                     solenoid_controller.machine_gun()
                     break
                 cv2.rectangle(color_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
