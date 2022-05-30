@@ -74,6 +74,7 @@ class realsense_cam:
                 "--threshold=0.1",
             ]
         )
+        self.mobilenet = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
         self.colorizer = rs.colorizer()
         self.color_frame = None
         self.depth_frame = None
@@ -97,7 +98,7 @@ class realsense_cam:
         return point1[2]
 
     def detect_objects(self, img):
-        detections = self.net.Detect(jetson.utils.cudaFromNumpy(img))
+        detections = self.mobilenet.Detect(jetson.utils.cudaFromNumpy(img))
         return detections
 
     def close(self):

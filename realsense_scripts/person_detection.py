@@ -41,6 +41,10 @@ class realsense_cam:
         detections = self.net.Detect(jetson.utils.cudaFromNumpy(img))
         return detections
 
+    def detect_obstacles(self, img):
+        detections = self.mob.Detect(jetson.utils.cudaFromNumpy(img))
+        return detections
+
 
 def main():
     cam = realsense_cam()
