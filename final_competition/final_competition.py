@@ -84,7 +84,7 @@ class realsense_cam:
                 "--threshold=0.1",
             ]
         )
-        self.mobilenet = self.net
+        # self.mobilenet = self.net
         self.colorizer = rs.colorizer()
         self.color_frame = None
         self.depth_frame = None

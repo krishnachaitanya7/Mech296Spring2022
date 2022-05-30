@@ -8,6 +8,7 @@ from wheel_control import MotionController
 
 class realsense_cam:
     def __init__(self):
+        self.net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
         pipeline = rs.pipeline()
         config = rs.config()
         config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 60)
@@ -15,7 +16,6 @@ class realsense_cam:
         self.align = rs.align(rs.stream.color)
         pipeline.start(config)
         self.pipeline = pipeline
-        self.net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
         self.color_frame = None
         self.depth_frame = None
 
