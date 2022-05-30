@@ -73,7 +73,7 @@ class realsense_cam:
         self.align = rs.align(rs.stream.color)
         pipeline.start(config)
         self.pipeline = pipeline
-        # self.mobilenet = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
+        self.mobilenet = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.1)
         self.net = jetson.inference.detectNet(
             argv=[
                 "--model=/home/robotvision/PycharmProjects/Mech296Spring2022/networks/my_network/mb1_ssd.onnx",

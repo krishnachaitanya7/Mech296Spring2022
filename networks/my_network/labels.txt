@@ -1,4 +1,3 @@
 BACKGROUND
 Goal
 Soccer Ball
-robot
