@@ -112,17 +112,17 @@ class realsense_cam:
         return detections
 
     def detect_wall(self, img):
-        best_person = None
-        detections = self.mobilenet.Detect(jetson.utils.cudaFromNumpy(img))
-        all_person_detections = [detection for detection in detections if detection.ClassID == 1]
-        if len(all_person_detections) > 0:
-            best_person = max(all_person_detections, key=lambda x: x.Confidence)
-        if best_person is not None:
-            x1, y1, x2, y2 = best_person.ROI
-            centroid_x, centroid_y = (x1 + x2) / 2, (y1 + y2) / 2
-            return centroid_x, centroid_y
-        else:
-            return None, None
+        # best_person = None
+        # detections = self.mobilenet.Detect(jetson.utils.cudaFromNumpy(img))
+        # all_person_detections = [detection for detection in detections if detection.ClassID == 1]
+        # if len(all_person_detections) > 0:
+        #     best_person = max(all_person_detections, key=lambda x: x.Confidence)
+        # if best_person is not None:
+        #     x1, y1, x2, y2 = best_person.ROI
+        #     centroid_x, centroid_y = (x1 + x2) / 2, (y1 + y2) / 2
+        #     return centroid_x, centroid_y
+        # else:
+        return None, None
 
     def close(self):
         self.pipeline.stop()
