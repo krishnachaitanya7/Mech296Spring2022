@@ -18,6 +18,7 @@ logging.basicConfig(stream=sys.stdout)
 # Constants
 REACHED_BALL_Y = 410
 REACHED_GOAL_HEIGHT = 250
+SHOOTING_DISTANCE = 130
 REACHED_PERSON_HEIGHT = 300
 BALL_COLOR = (0, 255, 0)
 GOAL_COLOR = (0, 0, 255)
@@ -32,14 +33,15 @@ defence_position_reached = False
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    # time.sleep(0.18)
-    # mc.stop()
+    time.sleep(0.18)
+    mc.stop()
 
 
 def turn_for_searching(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.1)
+    time.sleep(0.2)
     mc.stop()
+    time.sleep(0.2)
 
 
 def backup_robot(mc, left_pwm, right_pwm, right_or_left):
@@ -192,7 +194,7 @@ def main_loop():
     best_ball = None
     best_person = None
     best_robot = None
-    color_image_numpy, color_image_jetson, depth_image = cam.get_frames()
+    color_image_numpy, color_image_jetson, _ = cam.get_frames()
     # Ball and Goal detection
     detections = cam.detect_objects(color_image_jetson)
     # Person detection
@@ -305,7 +307,7 @@ def main_loop():
         )
     if SHOW_IMAGES:
         cv2.imshow("color", color_image_numpy)
-        cv2.imshow("depth", depth_image)
+        # cv2.imshow("depth", depth_image)
         cv2.waitKey(1)
     # The Control Loop
     return our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot
@@ -334,11 +336,11 @@ def go_to_ball():
             depth_val = cam.get_pixel_depth(centroid_x, centroid_y)
             print(f"Ball Depth: {depth_val}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 20, 20)
+                robot_go(mc, 25, 25)
             elif centroid_x < MIDDLE_RANGE[0]:
-                robot_go(mc, 17, 20)
+                robot_go(mc, 20, 25)
             elif centroid_x > MIDDLE_RANGE[-1]:
-                robot_go(mc, 20, 17)
+                robot_go(mc, 25, 20)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
                 logger.critical("Reached The ball")
                 return True
@@ -372,18 +374,20 @@ def go_to_goal():
                 centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
                 goal_height = y2 - y1
                 if centroid_x_goal in MIDDLE_RANGE:
-                    # robot_go(mc, 20, 20)
+                    robot_go(mc, 25, 25)
                     # solenoid_controller.machine_gun()
-                    kalashnikov(mc, solenoid_controller, 20, 20)
+                    if goal_height > SHOOTING_DISTANCE:
+                        logger.critical("Reached The Shooting Distance")
+                        kalashnikov(mc, solenoid_controller, 20, 20)
                 elif centroid_x_goal < MIDDLE_RANGE[0]:
-                    robot_go(mc, 17, 20)
+                    robot_go(mc, 18, 25)
                 elif centroid_x_goal > MIDDLE_RANGE[-1]:
-                    robot_go(mc, 20, 17)
+                    robot_go(mc, 25, 18)
                 if goal_height > REACHED_GOAL_HEIGHT:
                     mc.stop()
                     logger.info(f"stopping reached the goal. Centroid: {centroid_x_goal}, {centroid_y_goal}")
                     solenoid_controller.machine_gun()
-                    break
+                    # break
             else:
                 turn_with_ball(mc, 25, -10)
         else:
@@ -395,16 +399,19 @@ def go_to_goal():
                     logger.info("No ball after 5 seconds, defending the goal")
                     # Means that 5 seconds elapsed, and I am not able to find the ball
                     our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
+                    if best_ball is not None:
+                        defence_position_reached = True
+                        break
                     if our_goal is not None:
                         x1, y1, x2, y2 = our_goal.ROI
                         centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
                         goal_height = y2 - y1
                         if centroid_x_goal in MIDDLE_RANGE:
-                            robot_go(mc, 20, 20)
+                            robot_go(mc, 30, 30)
                         elif centroid_x_goal < MIDDLE_RANGE[0]:
-                            robot_go(mc, 17, 20)
+                            robot_go(mc, 18, 25)
                         elif centroid_x_goal > MIDDLE_RANGE[-1]:
-                            robot_go(mc, 20, 17)
+                            robot_go(mc, 25, 18)
                         if goal_height > REACHED_GOAL_HEIGHT:
                             defence_position_reached = True
                             break
