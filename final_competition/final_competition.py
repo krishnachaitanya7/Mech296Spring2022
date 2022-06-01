@@ -52,19 +52,21 @@ def turn_with_ball(mc, left_pwm, right_pwm):
 def detect_bottom_color(img):
     # TODO: Fix the goal colors
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # lower_green = np.array([40, 40, 40])
-    # upper_green = np.array([70, 255, 255])
-    lower_blue = np.array([80, 10, 10])
-    upper_blue = np.array([140, 269, 193])
+    lower_green = np.array([40, 40, 40])
+    upper_green = np.array([70, 255, 255])
+    # lower_blue = np.array([80, 10, 10])
+    # upper_blue = np.array([140, 269, 193])
+    lower_blue = np.array([70, 70, 60])
+    upper_blue = np.array([160, 255, 255])
     blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    # green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
     # num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
     num_blue_pixels = (np.sum(blue_mask) / 255) / (blue_mask.shape[0] * blue_mask.shape[1]) * 100
     # cv2.imshow("green_mask", green_mask)
-    # cv2.imshow("blue_mask", blue_mask)
-    # keyCode = cv2.waitKey(1) & 0xFF
-    # if keyCode == 27 or keyCode == ord("q"):
-    #     cv2.destroyAllWindows()
+    cv2.imshow("blue_mask", blue_mask)
+    keyCode = cv2.waitKey(1) & 0xFF
+    if keyCode == 27 or keyCode == ord("q"):
+        cv2.destroyAllWindows()
     if num_blue_pixels > 0:
         return "blue"
     else:
@@ -185,13 +187,22 @@ def main_loop():
     # Find the best goal
     all_goal_detections = [detection for detection in detections if detection.ClassID == 1]
     if len(all_goal_detections) > 0:
+        color_image = np.copy(color_image_numpy)
         best_goal = max(all_goal_detections, key=lambda x: x.Confidence)
         # show the goal
         gx1, gy1, gx2, gy2 = best_goal.ROI
         cv2.rectangle(
             color_image_numpy, (int(round(gx1)), int(round(gy1))), (int(round(gx2)), int(round(gy2))), GOAL_COLOR, 2
         )
-        goal_color = detect_bottom_color(color_image_numpy)
+        # Detect the bottom color in Goal
+        mask = np.zeros(color_image.shape[:2], dtype="uint8")
+        # cv2.rectangle(mask, (int(round(gx1)), int(round(gy2))), (int(round(gx2)), int(round(gy2)) + 5), 255, 2)
+        cv2.rectangle(mask, (0, int(round(gy2))), (639, int(round(gy2)) + 5), 255, 2)
+        # get the masked image
+        masked_image = cv2.bitwise_and(color_image, color_image, mask=mask)
+        # get the masked image's color
+        goal_color = detect_bottom_color(masked_image)
+        # goal_color = detect_bottom_color(color_image_numpy)
         if goal_color == goal_color_assigned:
             logger.info(f"Looking at right goal color: {goal_color}")
             # put goal color on top of the box
