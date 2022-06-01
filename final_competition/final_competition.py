@@ -17,8 +17,8 @@ logging.basicConfig(stream=sys.stdout)
 
 # Constants
 REACHED_BALL_Y = 410
-REACHED_GOAL_Y = 350
-REACHED_WALL_Y = 350
+REACHED_GOAL_HEIGHT = 250
+REACHED_PERSON_HEIGHT = 300
 BALL_COLOR = (0, 255, 0)
 GOAL_COLOR = (0, 0, 255)
 ROBOT_COLOR = (255, 0, 0)
@@ -27,19 +27,32 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 SHOW_IMAGES = True
 goal_color_assigned = "blue"
+defence_position_reached = False
 
 
 def robot_go(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.1)
-    mc.stop()
+    # time.sleep(0.18)
+    # mc.stop()
 
 
-def backup_robot(mc, left_pwm, right_pwm):
-    mc.stop()
-    time.sleep(0.5)
+def turn_for_searching(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
     time.sleep(0.1)
+    mc.stop()
+
+
+def backup_robot(mc, left_pwm, right_pwm, right_or_left):
+    mc.stop()
+    time.sleep(0.1)
+    mc.go_left_and_right(left_pwm, right_pwm)
+    time.sleep(0.5)
+    if right_or_left == "right":
+        mc.go_left_and_right(15, 20)
+        time.sleep(0.1)
+    else:
+        mc.go_left_and_right(20, 15)
+        time.sleep(0.1)
     mc.stop()
 
 
@@ -52,22 +65,23 @@ def turn_with_ball(mc, left_pwm, right_pwm):
 def detect_bottom_color(img):
     # TODO: Fix the goal colors
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    lower_green = np.array([40, 40, 40])
-    upper_green = np.array([70, 255, 255])
+    # lower_green = np.array([40, 40, 40])
+    # upper_green = np.array([70, 255, 255])
     # lower_blue = np.array([80, 10, 10])
     # upper_blue = np.array([140, 269, 193])
     lower_blue = np.array([70, 70, 60])
     upper_blue = np.array([160, 255, 255])
     blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    # green_mask = cv2.inRange(hsv, lower_green, upper_green)
     # num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
-    num_blue_pixels = (np.sum(blue_mask) / 255) / (blue_mask.shape[0] * blue_mask.shape[1]) * 100
+    num_blue_pixels = np.sum(blue_mask) / 255
+    logger.info(f"Num of Blue Pixels: {num_blue_pixels}")
     # cv2.imshow("green_mask", green_mask)
-    cv2.imshow("blue_mask", blue_mask)
-    keyCode = cv2.waitKey(1) & 0xFF
-    if keyCode == 27 or keyCode == ord("q"):
-        cv2.destroyAllWindows()
-    if num_blue_pixels > 0:
+    # cv2.imshow("blue_mask", blue_mask)
+    # keyCode = cv2.waitKey(1) & 0xFF
+    # if keyCode == 27 or keyCode == ord("q"):
+    #     cv2.destroyAllWindows()
+    if num_blue_pixels > 15:
         return "blue"
     else:
         return "green"
@@ -100,7 +114,7 @@ class realsense_cam:
                 "--input-blob=input_0",
                 "--output-cvg=scores",
                 "--output-bbox=boxes",
-                "--threshold=0.1",
+                "--threshold=0.2",
             ]
         )
         # self.mobilenet = self.net
@@ -151,6 +165,7 @@ solenoid_controller = SolenoidController()
 
 def kalashnikov(mc, solenoid_control, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
+    sleep(0.1)
     solenoid_control.fire()
     # sleep(0.1)
 
@@ -177,7 +192,7 @@ def main_loop():
     best_ball = None
     best_person = None
     best_robot = None
-    color_image_numpy, color_image_jetson, _ = cam.get_frames()
+    color_image_numpy, color_image_jetson, depth_image = cam.get_frames()
     # Ball and Goal detection
     detections = cam.detect_objects(color_image_jetson)
     # Person detection
@@ -197,7 +212,13 @@ def main_loop():
         # Detect the bottom color in Goal
         mask = np.zeros(color_image.shape[:2], dtype="uint8")
         # cv2.rectangle(mask, (int(round(gx1)), int(round(gy2))), (int(round(gx2)), int(round(gy2)) + 5), 255, 2)
-        cv2.rectangle(mask, (0, int(round(gy2))), (639, int(round(gy2)) + 5), 255, 2)
+        cv2.rectangle(
+            mask,
+            (0, int(round(gy2))),
+            (639, int(round(gy2)) + 5),
+            255,
+            2,
+        )
         # get the masked image
         masked_image = cv2.bitwise_and(color_image, color_image, mask=mask)
         # get the masked image's color
@@ -284,106 +305,112 @@ def main_loop():
         )
     if SHOW_IMAGES:
         cv2.imshow("color", color_image_numpy)
+        cv2.imshow("depth", depth_image)
         cv2.waitKey(1)
     # The Control Loop
     return our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot
 
 
 def go_to_ball():
+    global defence_position_reached
     start_time = time.time()
-    saw_ball = False
     while True:
-        MIDDLE_RANGE = np.arange(250, 290)
+        MIDDLE_RANGE = np.arange(240, 300)
         our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
         if best_person is not None:
             px1, py1, px2, py2 = best_person.ROI
             person_height = py2 - py1
-            if person_height > REACHED_WALL_Y:
-                backup_robot(mc, -20, -20)
+            person_x_centroid = (px1 + px2) / 2
+            right_or_left = "right" if person_x_centroid > 320 else "left"
+            if person_height > REACHED_PERSON_HEIGHT:
+                backup_robot(mc, -20, -20, right_or_left)
                 continue
         if best_ball is not None:
-            saw_ball = True
+            start_time = time.time()
+            defence_position_reached = False
             x1, y1, x2, y2 = best_ball.ROI
             centroid_x, centroid_y = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
             print(f"Centroid: {centroid_x}, {centroid_y}, Confidence: {best_ball.Confidence}")
             depth_val = cam.get_pixel_depth(centroid_x, centroid_y)
             print(f"Ball Depth: {depth_val}")
             if centroid_x in MIDDLE_RANGE:
-                robot_go(mc, 40, 40)
+                robot_go(mc, 20, 20)
             elif centroid_x < MIDDLE_RANGE[0]:
-                robot_go(mc, 20, 30)
+                robot_go(mc, 17, 20)
             elif centroid_x > MIDDLE_RANGE[-1]:
-                robot_go(mc, 30, 20)
+                robot_go(mc, 20, 17)
             if centroid_x in MIDDLE_RANGE and centroid_y > REACHED_BALL_Y:
                 logger.critical("Reached The ball")
                 return True
         else:
-            robot_go(mc, -25, 20)
+            turn_for_searching(mc, 20, -25)
             if time.time() - start_time > 5:
                 logger.critical("Time limit exceeded")
                 break
-    return saw_ball
+    return False
 
 
 def go_to_goal():
-    defence_position_reached = False
+    global defence_position_reached
     while True:
-        MIDDLE_RANGE = np.arange(250, 290)
+        MIDDLE_RANGE = np.arange(240, 300)
         our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
         if best_person is not None:
             px1, py1, px2, py2 = best_person.ROI
             person_height = py2 - py1
-            if person_height > REACHED_WALL_Y:
-                backup_robot(mc, -20, -20)
+            person_x_centroid = (px1 + px2) / 2
+            right_or_left = "right" if person_x_centroid > 320 else "left"
+            if person_height > REACHED_PERSON_HEIGHT:
+                backup_robot(mc, -20, -20, right_or_left)
                 continue
         if best_ball is not None:
             defence_position_reached = False
             x1, y1, x2, y2 = best_ball.ROI
             centroid_x_ball, centroid_y_ball = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-            if our_goal is not None:
-                x1, y1, x2, y2 = our_goal.ROI
+            if opponent_goal is not None:
+                x1, y1, x2, y2 = opponent_goal.ROI
                 centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
                 goal_height = y2 - y1
                 if centroid_x_goal in MIDDLE_RANGE:
                     # robot_go(mc, 20, 20)
                     # solenoid_controller.machine_gun()
-                    kalashnikov(mc, solenoid_controller, 40, 40)
+                    kalashnikov(mc, solenoid_controller, 20, 20)
                 elif centroid_x_goal < MIDDLE_RANGE[0]:
-                    robot_go(mc, 18, 25)
+                    robot_go(mc, 17, 20)
                 elif centroid_x_goal > MIDDLE_RANGE[-1]:
-                    robot_go(mc, 25, 18)
-                if centroid_x_goal in MIDDLE_RANGE and goal_height > REACHED_GOAL_Y:
+                    robot_go(mc, 20, 17)
+                if goal_height > REACHED_GOAL_HEIGHT:
                     mc.stop()
                     logger.info(f"stopping reached the goal. Centroid: {centroid_x_goal}, {centroid_y_goal}")
                     solenoid_controller.machine_gun()
                     break
             else:
-                turn_with_ball(mc, 10, 25)
+                turn_with_ball(mc, 25, -10)
         else:
             logger.info("Ball not detected, Going to Ball")
             reached_ball = go_to_ball()
-            # if not reached_ball:
-            while not defence_position_reached:
-                # if not reached_ball:
-                logger.info("No ball after 5 seconds, defending the goal")
-                # Means that 5 seconds elapsed, and I am not able to find the ball
-                our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
-                if our_goal is not None:
-                    x1, y1, x2, y2 = our_goal.ROI
-                    centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
-                    goal_height = y2 - y1
-                    if centroid_x_goal in MIDDLE_RANGE:
-                        robot_go(mc, 40, 40)
-                    elif centroid_x_goal < MIDDLE_RANGE[0]:
-                        robot_go(mc, 18, 25)
-                    elif centroid_x_goal > MIDDLE_RANGE[-1]:
-                        robot_go(mc, 25, 18)
-                    if goal_height > REACHED_GOAL_Y:
-                        defence_position_reached = True
-                        break
-                else:
-                    logger.critical("Goal not detected even after 5 seconds")
-                    robot_go(mc, -20, 20)
+            if not reached_ball:
+                while not defence_position_reached:
+                    # if not reached_ball:
+                    logger.info("No ball after 5 seconds, defending the goal")
+                    # Means that 5 seconds elapsed, and I am not able to find the ball
+                    our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
+                    if our_goal is not None:
+                        x1, y1, x2, y2 = our_goal.ROI
+                        centroid_x_goal, centroid_y_goal = int(round((x1 + x2) / 2)), int(round((y1 + y2) / 2))
+                        goal_height = y2 - y1
+                        if centroid_x_goal in MIDDLE_RANGE:
+                            robot_go(mc, 20, 20)
+                        elif centroid_x_goal < MIDDLE_RANGE[0]:
+                            robot_go(mc, 17, 20)
+                        elif centroid_x_goal > MIDDLE_RANGE[-1]:
+                            robot_go(mc, 20, 17)
+                        if goal_height > REACHED_GOAL_HEIGHT:
+                            defence_position_reached = True
+                            break
+                    else:
+                        logger.critical("Goal not detected even after 5 seconds")
+                        turn_for_searching(mc, 20, -20)
 
 
 if __name__ == "__main__":
