@@ -50,10 +50,10 @@ def backup_robot(mc, left_pwm, right_pwm, right_or_left):
     mc.go_left_and_right(left_pwm, right_pwm)
     time.sleep(0.5)
     if right_or_left == "right":
-        mc.go_left_and_right(15, 20)
+        mc.go_left_and_right(-15, 20)
         time.sleep(0.1)
     else:
-        mc.go_left_and_right(20, 15)
+        mc.go_left_and_right(20, -15)
         time.sleep(0.1)
     mc.stop()
 
@@ -106,7 +106,7 @@ class realsense_cam:
                 "--input-blob=input_0",
                 "--output-cvg=scores",
                 "--output-bbox=boxes",
-                "--threshold=0.1",
+                "--threshold=0.2",
             ]
         )
         self.robot_net = jetson.inference.detectNet(
@@ -317,7 +317,7 @@ def go_to_ball():
     global defence_position_reached
     start_time = time.time()
     while True:
-        MIDDLE_RANGE = np.arange(240, 300)
+        MIDDLE_RANGE = np.arange(260, 280)
         our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
         if best_person is not None:
             px1, py1, px2, py2 = best_person.ROI
