@@ -11,6 +11,7 @@ import jetson.utils
 import sys
 import logging
 
+rs.option.hue = 16
 logging.basicConfig(stream=sys.stdout)
 # set logger level info
 
@@ -79,11 +80,12 @@ def detect_bottom_color(img):
     num_blue_pixels = np.sum(blue_mask) / 255
     logger.info(f"Num of Blue Pixels: {num_blue_pixels}")
     # cv2.imshow("green_mask", green_mask)
-    # cv2.imshow("blue_mask", blue_mask)
-    # keyCode = cv2.waitKey(1) & 0xFF
-    # if keyCode == 27 or keyCode == ord("q"):
-    #     cv2.destroyAllWindows()
-    if num_blue_pixels > 15:
+    cv2.imshow("blue_mask", blue_mask)
+    cv2.imshow("mask_image", img)
+    keyCode = cv2.waitKey(1) & 0xFF
+    if keyCode == 27 or keyCode == ord("q"):
+        cv2.destroyAllWindows()
+    if num_blue_pixels > 600:
         return "blue"
     else:
         return "green"
@@ -214,13 +216,14 @@ def main_loop():
         # Detect the bottom color in Goal
         mask = np.zeros(color_image.shape[:2], dtype="uint8")
         # cv2.rectangle(mask, (int(round(gx1)), int(round(gy2))), (int(round(gx2)), int(round(gy2)) + 5), 255, 2)
-        cv2.rectangle(
-            mask,
-            (0, int(round(gy2))),
-            (639, int(round(gy2)) + 5),
-            255,
-            2,
-        )
+        # cv2.rectangle(
+        #     mask,
+        #     (0, int(round(gy2))),
+        #     (639, int(round(gy2)) + 10),
+        #     255,
+        #     2,
+        # )
+        mask[int(round(gy2)) : int(round(gy2)) + 5, 0:639] = 255
         # get the masked image
         masked_image = cv2.bitwise_and(color_image, color_image, mask=mask)
         # get the masked image's color
