@@ -25,4 +25,4 @@ python stop_robot.py
 # Model Weights
 In networks folder!
 # Demo Video
-https://github.com/krishnachaitanya7/Mech296Spring2022/blob/main/demo_videos/fina_day_demo.mp4
+![Demo](https://github.com/krishnachaitanya7/Mech296Spring2022/blob/main/demo_videos/fina_day_demo.mp4)
