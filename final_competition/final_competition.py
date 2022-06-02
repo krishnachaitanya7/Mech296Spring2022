@@ -20,7 +20,7 @@ logging.basicConfig(stream=sys.stdout)
 REACHED_BALL_Y = 410
 REACHED_GOAL_HEIGHT = 250
 SHOOTING_DISTANCE = 130
-REACHED_PERSON_HEIGHT = 300
+REACHED_PERSON_HEIGHT = 350
 BALL_COLOR = (0, 255, 0)
 GOAL_COLOR = (0, 0, 255)
 ROBOT_COLOR = (255, 0, 0)
@@ -28,7 +28,7 @@ PERSON_COLOR = (255, 255, 0)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 SHOW_IMAGES = True
-goal_color_assigned = "blue"
+goal_color_assigned = "green"
 defence_position_reached = False
 
 
@@ -49,20 +49,21 @@ def backup_robot(mc, left_pwm, right_pwm, right_or_left):
     mc.stop()
     time.sleep(0.1)
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.5)
+    time.sleep(0.2)
     if right_or_left == "right":
-        mc.go_left_and_right(-15, 20)
-        time.sleep(0.1)
+        mc.go_left_and_right(-20, 20)
+        time.sleep(0.4)
     else:
-        mc.go_left_and_right(20, -15)
-        time.sleep(0.1)
+        mc.go_left_and_right(20, -20)
+        time.sleep(0.4)
     mc.stop()
 
 
 def turn_with_ball(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.15)
+    time.sleep(0.2)
     mc.stop()
+    time.sleep(0.2)
 
 
 def detect_bottom_color(img):
@@ -80,11 +81,11 @@ def detect_bottom_color(img):
     num_blue_pixels = np.sum(blue_mask) / 255
     logger.info(f"Num of Blue Pixels: {num_blue_pixels}")
     # cv2.imshow("green_mask", green_mask)
-    cv2.imshow("blue_mask", blue_mask)
-    cv2.imshow("mask_image", img)
-    keyCode = cv2.waitKey(1) & 0xFF
-    if keyCode == 27 or keyCode == ord("q"):
-        cv2.destroyAllWindows()
+    # cv2.imshow("blue_mask", blue_mask)
+    # cv2.imshow("mask_image", img)
+    # keyCode = cv2.waitKey(1) & 0xFF
+    # if keyCode == 27 or keyCode == ord("q"):
+    #     cv2.destroyAllWindows()
     if num_blue_pixels > 1:
         return "blue"
     else:
@@ -242,11 +243,12 @@ def main_loop():
                 2,
             )
             our_goal = best_goal
+            opponent_goal = None
         # Commenting this part due to bug in goal color detection.
         # Remove this comment and uncomment below snippet
         else:
             opponent_goal = best_goal
-            best_goal = None
+            our_goal = None
             logger.info(f"Not detecting the right color goal: {goal_color}")
 
     # find the best ball
@@ -320,7 +322,7 @@ def go_to_ball():
     global defence_position_reached
     start_time = time.time()
     while True:
-        MIDDLE_RANGE = np.arange(260, 280)
+        MIDDLE_RANGE = np.arange(240, 290)
         our_goal, opponent_goal, best_goal, best_ball, best_person, best_robot = main_loop()
         if best_person is not None:
             px1, py1, px2, py2 = best_person.ROI
@@ -379,9 +381,9 @@ def go_to_goal():
                 if centroid_x_goal in MIDDLE_RANGE:
                     robot_go(mc, 25, 25)
                     # solenoid_controller.machine_gun()
-                    if goal_height > SHOOTING_DISTANCE:
-                        logger.critical("Reached The Shooting Distance")
-                        kalashnikov(mc, solenoid_controller, 20, 20)
+                    # if goal_height > SHOOTING_DISTANCE:
+                    #     logger.critical("Reached The Shooting Distance")
+                    #     kalashnikov(mc, solenoid_controller, 20, 20)
                 elif centroid_x_goal < MIDDLE_RANGE[0]:
                     robot_go(mc, 18, 25)
                 elif centroid_x_goal > MIDDLE_RANGE[-1]:
@@ -389,10 +391,11 @@ def go_to_goal():
                 if goal_height > REACHED_GOAL_HEIGHT:
                     mc.stop()
                     logger.info(f"stopping reached the goal. Centroid: {centroid_x_goal}, {centroid_y_goal}")
-                    solenoid_controller.machine_gun()
+                    for _ in range(4):
+                        solenoid_controller.machine_gun()
                     # break
             else:
-                turn_with_ball(mc, 25, -10)
+                turn_with_ball(mc, 25, -15)
         else:
             logger.info("Ball not detected, Going to Ball")
             reached_ball = go_to_ball()
