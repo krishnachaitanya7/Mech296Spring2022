@@ -168,28 +168,6 @@ mc = MotionController()
 solenoid_controller = SolenoidController()
 
 
-def kalashnikov(mc, solenoid_control, left_pwm, right_pwm):
-    mc.go_left_and_right(left_pwm, right_pwm)
-    sleep(0.1)
-    solenoid_control.fire()
-    # sleep(0.1)
-
-
-# def go_to_goal(centroid_x_goal, goal_height):
-#     MIDDLE_RANGE = np.arange(240, 300)
-#     REACHED_GOAL_Y_HEIGHT = 350
-
-#     if goal_height > REACHED_GOAL_Y_HEIGHT:
-#         robot_go(mc, 20, -20)
-#     else:
-#         if centroid_x_goal in MIDDLE_RANGE:
-#             robot_go(mc, 50, 50)
-#         elif centroid_x_goal < MIDDLE_RANGE[0]:
-#             robot_go(mc, 18, 25)
-#         elif centroid_x_goal > MIDDLE_RANGE[-1]:
-#             robot_go(mc, 25, 18)
-
-
 def main_loop():
     best_goal = None
     our_goal = None
@@ -388,10 +366,6 @@ def go_to_goal():
                     goal_height = y2 - y1
                     if centroid_x_goal in MIDDLE_RANGE:
                         robot_go(mc, 25, 25)
-                        # solenoid_controller.machine_gun()
-                        # if goal_height > SHOOTING_DISTANCE:
-                        #     logger.critical("Reached The Shooting Distance")
-                        #     kalashnikov(mc, solenoid_controller, 20, 20)
                     elif centroid_x_goal < MIDDLE_RANGE[0]:
                         logger.info("Opponent Goal on Left Side")
                         robot_go(mc, 18, 25)
