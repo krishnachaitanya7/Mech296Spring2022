@@ -70,10 +70,10 @@ def detect_bottom_color(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # lower_green = np.array([40, 40, 40])
     # upper_green = np.array([70, 255, 255])
-    # lower_blue = np.array([80, 10, 10])
-    # upper_blue = np.array([140, 269, 193])
-    lower_blue = np.array([70, 70, 60])
-    upper_blue = np.array([160, 255, 255])
+    lower_blue = np.array([80, 10, 10])
+    upper_blue = np.array([140, 269, 193])
+    # lower_blue = np.array([70, 70, 60])
+    # upper_blue = np.array([160, 255, 255])
     blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
     # green_mask = cv2.inRange(hsv, lower_green, upper_green)
     # num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
@@ -85,7 +85,7 @@ def detect_bottom_color(img):
     keyCode = cv2.waitKey(1) & 0xFF
     if keyCode == 27 or keyCode == ord("q"):
         cv2.destroyAllWindows()
-    if num_blue_pixels > 600:
+    if num_blue_pixels > 1:
         return "blue"
     else:
         return "green"
@@ -223,7 +223,7 @@ def main_loop():
         #     255,
         #     2,
         # )
-        mask[int(round(gy2)) : int(round(gy2)) + 5, 0:639] = 255
+        mask[int(round(gy2)) : int(round(gy2)) + 30, int(round(gx1)) : int(round(gx2))] = 255
         # get the masked image
         masked_image = cv2.bitwise_and(color_image, color_image, mask=mask)
         # get the masked image's color
