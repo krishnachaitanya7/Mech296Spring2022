@@ -21,4 +21,8 @@ python stop_robot.py
 - Compile OpenCV with (optional Qt) and CUDA support for maximum performance
 - Make a virtual environment for the project. Don't litter the system interpreter with the project files.
 - Connect the Jetson TO Eduroam and do X11 forwarding and use "export DISPLAY=:10" to get imshow windows directly to your PC. Use slack to get IP address on boot using crontab. Access Jetson using Remote-SSH extension in VSCode. Add the system to keys to Jetson for password less access. 
+
+# Model Weights
+In networks folder!
 # Demo Video
+https://github.com/krishnachaitanya7/Mech296Spring2022/blob/main/demo_videos/fina_day_demo.mp4
