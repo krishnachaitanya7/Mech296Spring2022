@@ -61,9 +61,9 @@ def backup_robot(mc, left_pwm, right_pwm, right_or_left):
 
 def turn_with_ball(mc, left_pwm, right_pwm):
     mc.go_left_and_right(left_pwm, right_pwm)
-    time.sleep(0.2)
+    time.sleep(0.3)
     mc.stop()
-    time.sleep(0.2)
+    # time.sleep(0.2)
 
 
 def detect_bottom_color(img):
@@ -401,7 +401,7 @@ def go_to_goal():
                     if goal_height > REACHED_GOAL_HEIGHT:
                         mc.stop()
                         logger.info(f"Stopping. Reached the Opponent  goal. Shooting Solenoid")
-                        for _ in range(4):
+                        for _ in range(5):
                             solenoid_controller.machine_gun()
                         # break
                 else:
