@@ -28,7 +28,7 @@ PERSON_COLOR = (255, 255, 0)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 SHOW_IMAGES = True
-goal_color_assigned = "green"
+goal_color_assigned = "blue"
 defence_position_reached = False
 
 
@@ -394,7 +394,7 @@ def go_to_goal():
                         #     kalashnikov(mc, solenoid_controller, 20, 20)
                     elif centroid_x_goal < MIDDLE_RANGE[0]:
                         logger.info("Opponent Goal on Left Side")
-                        robot_go(mc, 18, 27)
+                        robot_go(mc, 18, 25)
                     elif centroid_x_goal > MIDDLE_RANGE[-1]:
                         logger.info("Opponent Goal on Right Side")
                         robot_go(mc, 27, 18)
@@ -405,7 +405,7 @@ def go_to_goal():
                             solenoid_controller.machine_gun()
                         # break
                 else:
-                    turn_with_ball(mc, 25, -15)
+                    turn_with_ball(mc, 25, -25)
         else:
 
             # reached_ball = go_to_ball()
