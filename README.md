@@ -29,4 +29,4 @@ python stop_robot.py
 # Model Weights
 In networks folder!
 # Demo Video
-![Demo](https://youtube.com/shorts/KYHkfP-IXz8?feature=share)
+[![Final Robot Tournament](https://img.youtube.com/vi/KYHkfP-IXz8/0.jpg)](https://www.youtube.com/watch?v=KYHkfP-IXz8)
