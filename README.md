@@ -2,7 +2,7 @@
 This is a group project for MECH296A at Santa Clara University in the Spring of 2022. Teammates:
 - James Forman
 - Rehan Nazir
-- Krishna
+- Krishna Chaitanya
 ## Task
 A random goal is assigned at the start, which is is either on the blue side or green side as shown in the demo video.
 The task is to move the robot to the goal, and then to the other side of the field to the opponent's goal. To achieve this run the below file in the terminal, type:
