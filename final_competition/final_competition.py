@@ -69,12 +69,8 @@ def turn_with_ball(mc, left_pwm, right_pwm):
 def detect_bottom_color(img):
     # TODO: Fix the goal colors
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # lower_green = np.array([40, 40, 40])
-    # upper_green = np.array([70, 255, 255])
     lower_blue = np.array([80, 10, 10])
     upper_blue = np.array([140, 269, 193])
-    # lower_blue = np.array([70, 70, 60])
-    # upper_blue = np.array([160, 255, 255])
     blue_mask = cv2.inRange(hsv, lower_blue, upper_blue)
     # green_mask = cv2.inRange(hsv, lower_green, upper_green)
     # num_green_pixels = (np.sum(green_mask) / 255) / (green_mask.shape[0] * green_mask.shape[1]) * 100
