@@ -1,4 +1,8 @@
 # Final Project for MECH296A
+This is a group project for MECH296A at Santa Clara University in the Spring of 2022. Teammates:
+- James Forman
+- Rehan Nazir
+- Krishna
 ## Task
 A random goal is assigned at the start, which is is either on the blue side or green side as shown in the demo video.
 The task is to move the robot to the goal, and then to the other side of the field to the opponent's goal. To achieve this run the below file in the terminal, type:
@@ -25,4 +29,4 @@ python stop_robot.py
 # Model Weights
 In networks folder!
 # Demo Video
-![Demo](https://github.com/krishnachaitanya7/Mech296Spring2022/blob/main/demo_videos/fina_day_demo.mp4)
+![Demo](https://youtube.com/shorts/KYHkfP-IXz8?feature=share)
